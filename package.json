@@ -1,13 +1,11 @@
 {
   "name": "siarsip",
   "private": true,
-  "workspaces": ["frontend/react", "frontend/vue"],
+  "workspaces": ["frontend/react"],
   "scripts": {
     "dev:react": "npm --workspace frontend/react run dev",
-    "dev:vue": "npm --workspace frontend/vue run dev",
-    "build": "npm run build:react && npm run build:vue",
+    "build": "npm run build:react",
     "build:react": "npm --workspace frontend/react run build",
-    "build:vue": "npm --workspace frontend/vue run build",
     "dev:backend": "cd backend && go run ."
   }
 }
