@@ -1,6 +1,6 @@
 # SiArsip
 
-istem Pengarsipan Digital Prodi RPL.
+Sistem Pengarsipan Digital Prodi RPL.
 
 ## Struktur
 
