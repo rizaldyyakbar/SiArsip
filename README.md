@@ -5,7 +5,6 @@ Sistem Pengarsipan Digital Prodi RPL.
 ## Struktur
 
 - `frontend/react`: React + Vite + TypeScript + Tailwind CSS
-- `frontend/vue`: Vue + Vite + TypeScript + Tailwind CSS
 - `backend`: Go HTTP API
 
 ## Menjalankan
@@ -13,7 +12,6 @@ Sistem Pengarsipan Digital Prodi RPL.
 ```bash
 npm install
 npm run dev:react
-npm run dev:vue
 npm run dev:backend
 ```
 

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -27,11 +28,41 @@ func (handler *DocumentHandler) RegisterRoutes(mux *http.ServeMux) {
 }
 
 func (handler *DocumentHandler) list(writer http.ResponseWriter, request *http.Request) {
-	rows, err := handler.connection.Query(request.Context(), `
+	queryParameters := request.URL.Query()
+	conditions := make([]string, 0)
+	arguments := make([]any, 0)
+
+	if query := strings.TrimSpace(queryParameters.Get("query")); query != "" {
+		arguments = append(arguments, "%"+query+"%")
+		placeholder := fmt.Sprintf("$%d", len(arguments))
+		conditions = append(conditions, "(title ILIKE "+placeholder+" OR category ILIKE "+placeholder+" OR file_path ILIKE "+placeholder+")")
+	}
+
+	if category := strings.TrimSpace(queryParameters.Get("category")); category != "" {
+		arguments = append(arguments, category)
+		conditions = append(conditions, fmt.Sprintf("category ILIKE $%d", len(arguments)))
+	}
+
+	if yearValue := strings.TrimSpace(queryParameters.Get("year")); yearValue != "" {
+		year, err := strconv.Atoi(yearValue)
+		if err != nil {
+			http.Error(writer, "year harus berupa angka", http.StatusBadRequest)
+			return
+		}
+		arguments = append(arguments, year)
+		conditions = append(conditions, fmt.Sprintf("year = $%d", len(arguments)))
+	}
+
+	documentQuery := `
 		SELECT id, title, category, year, file_path, created_at
 		FROM documents
-		ORDER BY created_at DESC
-	`)
+	`
+	if len(conditions) > 0 {
+		documentQuery += " WHERE " + strings.Join(conditions, " AND ")
+	}
+	documentQuery += " ORDER BY created_at DESC"
+
+	rows, err := handler.connection.Query(request.Context(), documentQuery, arguments...)
 	if err != nil {
 		http.Error(writer, "Gagal mengambil dokumen", http.StatusInternalServerError)
 		return
