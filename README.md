@@ -1,6 +1,6 @@
 # SiArsip
 
-Monorepo awal untuk Sistem Pengarsipan Digital Prodi RPL.
+istem Pengarsipan Digital Prodi RPL.
 
 ## Struktur
 
