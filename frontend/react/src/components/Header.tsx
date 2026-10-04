@@ -16,13 +16,17 @@ interface HeaderProps {
   onOpenUpload: () => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
+  isBackendOnline?: boolean | null;
+  onRefresh?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onToggleMobileMenu,
   onOpenUpload,
   searchQuery,
-  onSearchChange
+  onSearchChange,
+  isBackendOnline,
+  onRefresh
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -62,6 +66,31 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right side: Unggah CTA, Notifications, Profile */}
       <div className="flex items-center gap-2 sm:gap-4 ml-4">
+        {/* Backend Status Indicator */}
+        <div className="hidden md:flex items-center gap-1.5">
+          {isBackendOnline ? (
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200/60 px-3 py-1 text-[11px] font-semibold text-emerald-800"
+              title="Backend Go terhubung aktif"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              Live API
+            </span>
+          ) : (
+            <button
+              onClick={onRefresh}
+              className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 hover:bg-slate-200 px-3 py-1 text-[11px] font-medium text-slate-600 transition-colors"
+              title="Klik untuk mencoba koneksi ulang ke backend Go"
+            >
+              <span className="h-2 w-2 rounded-full bg-slate-400"></span>
+              Mode Demo
+            </button>
+          )}
+        </div>
+
         {/* Unggah Dokumen CTA */}
         <button
           onClick={onOpenUpload}

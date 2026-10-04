@@ -175,7 +175,14 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
-                            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                            onClick={() => {
+                              if (doc.previewUrl) {
+                                window.open(doc.previewUrl, '_blank');
+                              } else {
+                                onViewDocument(doc);
+                              }
+                            }}
+                            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"
                             title="Unduh Berkas"
                           >
                             <Download className="h-4 w-4" />

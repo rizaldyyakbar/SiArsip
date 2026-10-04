@@ -1,31 +1,47 @@
 import React, { useState } from 'react';
-import { UploadCloud, X, Hash } from 'lucide-react';
-import type { DocumentItem } from '../types';
+import { UploadCloud, X, Hash, AlertCircle, Loader2 } from 'lucide-react';
+import type { DocumentItem, AcademicYearMaster, LamInfokomCriterion } from '../types';
 import { mockAcademicYears, mockLamInfokomCriteria } from '../mockData';
+import { getCategoryTheme } from '../api';
 
 interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (newDoc: DocumentItem) => void;
+  onUpload?: (
+    formData: FormData,
+    simulatedDoc: DocumentItem
+  ) => Promise<{ success: boolean; conflict?: any }>;
+  academicYears?: AcademicYearMaster[];
+  criteria?: LamInfokomCriterion[];
 }
 
 export const UploadModal: React.FC<UploadModalProps> = ({
   isOpen,
   onClose,
-  onSuccess
+  onSuccess,
+  onUpload,
+  academicYears = mockAcademicYears,
+  criteria = mockLamInfokomCriteria
 }) => {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Tugas Akhir');
   const [documentNumber, setDocumentNumber] = useState('');
   const [nip, setNip] = useState('');
   const [documentDate, setDocumentDate] = useState('');
-  const [academicYear, setAcademicYear] = useState('2026/2027 Ganjil');
+  const [academicYear, setAcademicYear] = useState(
+    academicYears.find((ay) => ay.isActive)?.label || academicYears[0]?.label || '2026/2027 Ganjil'
+  );
   const [accreditationInstrument, setAccreditationInstrument] = useState('LAM INFOKOM 2.1');
-  const [accreditationCriterion, setAccreditationCriterion] = useState(mockLamInfokomCriteria[0].title);
+  const [accreditationCriterion, setAccreditationCriterion] = useState(
+    criteria[0]?.title || 'C.1 - Visi, Misi, Tujuan, dan Strategi (VMTS)'
+  );
   const [evidenceType, setEvidenceType] = useState('Dokumen kebijakan / pedoman');
   const [fileName, setFileName] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>();
   const [isUploading, setIsUploading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const isAccreditation = category === 'Akreditasi';
 
   if (!isOpen) return null;
@@ -33,6 +49,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   const handleSimulatedFileDrop = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      setSelectedFile(file);
       setFileName(file.name);
       setPreviewUrl(URL.createObjectURL(file));
       if (!title) {
@@ -41,38 +58,72 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsUploading(true);
+    setErrorMsg(null);
 
-    setTimeout(() => {
-      const newDoc: DocumentItem = {
-        id: `doc-${Date.now()}`,
-        archiveNumber: `ARS-2026-${String(Date.now()).slice(-6)}`,
-        documentNumber,
-        documentDate: documentDate || '2026-09-30',
-        academicYear,
-        previewUrl,
-        accreditationInstrument: isAccreditation ? accreditationInstrument : undefined,
-        accreditationCriterion: isAccreditation ? accreditationCriterion : undefined,
-        evidenceType: isAccreditation ? evidenceType : undefined,
-        filename: fileName || `[${category.slice(0, 3).toUpperCase()}]_${title.replace(/\s+/g, '_')}_2026.pdf`,
-        fileSize: '3.1 MB',
-        shaHash: '9a3c...b841',
-        category,
-        categoryTheme: {
-          bg: '#e8f0fe',
-          text: '#00236f',
-        },
-        responsibleIdentifier: nip ? `NIP: ${nip}` : 'Unit Akademik RPL',
-        uploadDate: 'Baru saja',
-        status: 'Aktif'
-      };
+    const activeAY = academicYear || academicYears[0]?.label || '2026/2027 Ganjil';
+    const cleanDate = documentDate || new Date().toISOString().slice(0, 10);
+    const simulatedDoc: DocumentItem = {
+      id: `doc-${Date.now()}`,
+      archiveNumber: `ARS-2026-${String(Date.now()).slice(-6)}`,
+      documentNumber,
+      documentDate: cleanDate,
+      academicYear: activeAY,
+      previewUrl,
+      accreditationInstrument: isAccreditation ? accreditationInstrument : undefined,
+      accreditationCriterion: isAccreditation ? accreditationCriterion : undefined,
+      evidenceType: isAccreditation ? evidenceType : undefined,
+      filename: fileName || `[${category.slice(0, 3).toUpperCase()}]_${title.replace(/\s+/g, '_')}_2026.pdf`,
+      fileSize: selectedFile ? `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB` : '3.1 MB',
+      shaHash: '9a3c...b841',
+      category,
+      categoryTheme: getCategoryTheme(category),
+      responsibleIdentifier: nip ? `NIP: ${nip}` : 'Unit Akademik RPL',
+      uploadDate: 'Baru saja',
+      status: 'Aktif'
+    };
 
-      onSuccess(newDoc);
+    try {
+      if (onUpload) {
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('category', category);
+        formData.append('document_number', documentNumber);
+        formData.append('document_date', cleanDate);
+        formData.append('academic_year', activeAY);
+        if (nip) formData.append('nip', nip);
+        if (isAccreditation) {
+          if (accreditationInstrument) formData.append('accreditation_instrument', accreditationInstrument);
+          if (accreditationCriterion) formData.append('accreditation_criterion', accreditationCriterion);
+          if (evidenceType) formData.append('evidence_type', evidenceType);
+        }
+        if (selectedFile) {
+          formData.append('file', selectedFile);
+        } else {
+          const blob = new Blob([`Berkas: ${title}\nNo: ${documentNumber}\nTgl: ${cleanDate}`], {
+            type: 'application/pdf'
+          });
+          formData.append('file', blob, `${title.replace(/\s+/g, '_')}.pdf`);
+        }
+
+        const res = await onUpload(formData, simulatedDoc);
+        if (res.success) {
+          onSuccess(simulatedDoc);
+          onClose();
+        } else if (res.conflict) {
+          onClose();
+        }
+      } else {
+        onSuccess(simulatedDoc);
+        onClose();
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Gagal mengunggah berkas. Periksa koneksi backend.');
+    } finally {
       setIsUploading(false);
-      onClose();
-    }, 600);
+    }
   };
 
   return (
@@ -209,7 +260,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               onChange={(e) => setAcademicYear(e.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#00236f] focus:ring-1 focus:ring-[#00236f] outline-hidden"
             >
-              {mockAcademicYears.map((ay) => (
+              {academicYears.map((ay) => (
                 <option key={ay.id} value={ay.label}>
                   {ay.label} {ay.isActive ? '(Aktif Saat Ini)' : ''}
                 </option>
@@ -250,7 +301,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                     onChange={(e) => setAccreditationCriterion(e.target.value)}
                     className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#c8102e] focus:ring-1 focus:ring-[#c8102e] outline-hidden"
                   >
-                    {mockLamInfokomCriteria.map((c) => (
+                    {criteria.map((c) => (
                       <option key={c.code} value={c.title}>
                         {c.title}
                       </option>
@@ -279,6 +330,14 @@ export const UploadModal: React.FC<UploadModalProps> = ({
             </div>
           )}
 
+          {/* Error Message Display */}
+          {errorMsg && (
+            <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-[11px] text-[#ba1a1a] border border-red-200">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
           {/* SHA Integrity preview */}
           <div className="flex items-center gap-2 rounded-xl bg-[#e7eeff] p-3 text-[11px] text-[#00236f]">
             <Hash className="h-4 w-4 shrink-0" />
@@ -290,16 +349,24 @@ export const UploadModal: React.FC<UploadModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-slate-200 px-4 py-2.5 font-semibold text-slate-700 hover:bg-slate-50"
+              disabled={isUploading}
+              className="rounded-xl border border-slate-200 px-4 py-2.5 font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isUploading}
-              className="rounded-xl bg-[#c8102e] px-5 py-2.5 font-semibold text-white shadow-xs hover:bg-[#9e1025] disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#c8102e] px-5 py-2.5 font-semibold text-white shadow-xs hover:bg-[#9e1025] disabled:opacity-50 transition-all"
             >
-              {isUploading ? 'Memproses Berkas...' : 'Unggah & Indeks'}
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Memproses Berkas...</span>
+                </>
+              ) : (
+                <span>Unggah & Indeks</span>
+              )}
             </button>
           </div>
         </form>
