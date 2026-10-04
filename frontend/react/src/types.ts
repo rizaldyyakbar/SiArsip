@@ -1,5 +1,12 @@
 export interface DocumentItem {
   id: string;
+  archiveNumber: string;
+  documentNumber: string;
+  documentDate: string;
+  academicYear: string;
+  previewUrl?: string;
+  accreditationInstrument?: string;
+  evidenceType?: string;
   filename: string;
   fileSize: string;
   shaHash: string;
@@ -9,8 +16,8 @@ export interface DocumentItem {
     text: string;
     border?: string;
   };
-  relatedName: string;
-  relatedRoleOrNim: string;
+  relatedName?: string;
+  responsibleIdentifier: string;
   uploadDate: string;
   status: 'Aktif' | 'Draft' | 'Tertunda';
   issues?: string;

@@ -15,10 +15,16 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 }) => {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Tugas Akhir');
-  const [relatedName, setRelatedName] = useState('');
-  const [relatedRoleOrNim, setRelatedRoleOrNim] = useState('');
+  const [documentNumber, setDocumentNumber] = useState('');
+  const [nip, setNip] = useState('');
+  const [documentDate, setDocumentDate] = useState('');
+  const [academicYear, setAcademicYear] = useState('2026/2027');
+  const [accreditationInstrument, setAccreditationInstrument] = useState('2.1');
+  const [evidenceType, setEvidenceType] = useState('Dokumen kebijakan / pedoman');
   const [fileName, setFileName] = useState('');
+  const [previewUrl, setPreviewUrl] = useState<string>();
   const [isUploading, setIsUploading] = useState(false);
+  const isAccreditation = category === 'Akreditasi';
 
   if (!isOpen) return null;
 
@@ -26,6 +32,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setFileName(file.name);
+      setPreviewUrl(URL.createObjectURL(file));
       if (!title) {
         setTitle(file.name.replace(/\.[^/.]+$/, ''));
       }
@@ -39,6 +46,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     setTimeout(() => {
       const newDoc: DocumentItem = {
         id: `doc-${Date.now()}`,
+        archiveNumber: `ARS-2026-${String(Date.now()).slice(-6)}`,
+        documentNumber,
+        documentDate,
+        academicYear,
+        previewUrl,
+        accreditationInstrument: isAccreditation ? accreditationInstrument : undefined,
+        evidenceType: isAccreditation ? evidenceType : undefined,
         filename: fileName || `[${category.slice(0, 3).toUpperCase()}]_${title.replace(/\s+/g, '_')}_2026.pdf`,
         fileSize: '3.1 MB',
         shaHash: '9a3c...b841',
@@ -47,8 +61,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
           bg: '#e8f0fe',
           text: '#00236f',
         },
-        relatedName: relatedName || 'Mahasiswa RPL',
-        relatedRoleOrNim: relatedRoleOrNim || 'NIM: 220401050',
+        responsibleIdentifier: `NIP: ${nip}`,
         uploadDate: 'Baru saja',
         status: 'Aktif'
       };
@@ -65,7 +78,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#00236f] text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#c8102e] text-white">
               <UploadCloud className="h-5 w-5" />
             </div>
             <div>
@@ -89,7 +102,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         <form onSubmit={handleSubmit} className="mt-5 space-y-4 text-xs">
           {/* File input drag and drop area */}
           <div className="relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-[#f9f9ff] p-6 text-center hover:border-[#00236f] transition-colors">
-            <UploadCloud className="h-8 w-8 text-[#00236f]" />
+            <UploadCloud className="h-8 w-8 text-[#c8102e]" />
             <p className="mt-2 font-semibold text-slate-800">
               {fileName ? fileName : 'Pilih berkas atau seret ke sini'}
             </p>
@@ -139,14 +152,42 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
-                Nama Terkait (Mahasiswa / Dosen)
+                NIP Penanggung Jawab
+              </label>
+              <input
+                type="text"
+                required={!isAccreditation}
+                value={nip}
+                onChange={(e) => setNip(e.target.value)}
+                placeholder={isAccreditation ? 'Opsional jika bukti terkait dosen' : 'Contoh: 198501012010121001'}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#00236f] focus:ring-1 focus:ring-[#00236f] outline-hidden"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                No. Dokumen Resmi
               </label>
               <input
                 type="text"
                 required
-                value={relatedName}
-                onChange={(e) => setRelatedName(e.target.value)}
-                placeholder="Nama lengkap"
+                value={documentNumber}
+                onChange={(e) => setDocumentNumber(e.target.value)}
+                placeholder="Nomor yang tercetak di berkas"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#00236f] focus:ring-1 focus:ring-[#00236f] outline-hidden"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Tanggal Dokumen
+              </label>
+              <input
+                type="date"
+                required
+                value={documentDate}
+                onChange={(e) => setDocumentDate(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#00236f] focus:ring-1 focus:ring-[#00236f] outline-hidden"
               />
             </div>
@@ -154,17 +195,50 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 
           <div>
             <label className="block font-semibold text-slate-700 mb-1">
-              NIM / NIP / ID Terkait
+              Tahun Akademik
             </label>
-            <input
-              type="text"
+            <select
               required
-              value={relatedRoleOrNim}
-              onChange={(e) => setRelatedRoleOrNim(e.target.value)}
-              placeholder="Contoh: NIM: 220401048 atau Dosen Pengampu"
+              value={academicYear}
+              onChange={(e) => setAcademicYear(e.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#00236f] focus:ring-1 focus:ring-[#00236f] outline-hidden"
-            />
+            >
+              <option value="2026/2027">2026/2027</option>
+              <option value="2025/2026">2025/2026</option>
+            </select>
           </div>
+
+          {isAccreditation && (
+            <div className="grid grid-cols-1 gap-3 rounded-2xl border border-red-100 bg-[#fff8f8] p-4 sm:grid-cols-2">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Instrumen Akreditasi
+                </label>
+                <select
+                  value={accreditationInstrument}
+                  onChange={(e) => setAccreditationInstrument(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#c8102e] focus:ring-1 focus:ring-[#c8102e] outline-hidden"
+                >
+                  <option value="2.1">LAM INFOKOM - Instrumen 2.1</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Jenis Bukti
+                </label>
+                <select
+                  value={evidenceType}
+                  onChange={(e) => setEvidenceType(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#c8102e] focus:ring-1 focus:ring-[#c8102e] outline-hidden"
+                >
+                  <option>Dokumen kebijakan / pedoman</option>
+                  <option>SK atau surat keputusan</option>
+                  <option>Berita acara / laporan</option>
+                  <option>Bukti pendukung lainnya</option>
+                </select>
+              </div>
+            </div>
+          )}
 
           {/* SHA Integrity preview */}
           <div className="flex items-center gap-2 rounded-xl bg-[#e7eeff] p-3 text-[11px] text-[#00236f]">
@@ -184,7 +258,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
             <button
               type="submit"
               disabled={isUploading}
-              className="rounded-xl bg-[#00236f] px-5 py-2.5 font-semibold text-white shadow-xs hover:bg-[#1e3a8a] disabled:opacity-50"
+              className="rounded-xl bg-[#c8102e] px-5 py-2.5 font-semibold text-white shadow-xs hover:bg-[#9e1025] disabled:opacity-50"
             >
               {isUploading ? 'Memproses Berkas...' : 'Unggah & Indeks'}
             </button>

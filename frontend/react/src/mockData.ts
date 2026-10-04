@@ -3,7 +3,11 @@ import type { DocumentItem, AuditLogItem, CategoryDistribution, MonthlyTrend } f
 export const mockDocuments: DocumentItem[] = [
   {
     id: 'doc-1',
-    filename: '[TA]_220401048_Aditya_Pratama_2026.pdf',
+    archiveNumber: 'ARS-2026-000001',
+    documentNumber: '004/TA/RPL/IX/2026',
+    documentDate: '2026-09-28',
+    academicYear: '2026/2027',
+    filename: '[TA]_RPL_Implementasi_Sistem_Arsip_2026.pdf',
     fileSize: '4.2 MB',
     shaHash: 'e8f2...9a1b',
     category: 'Tugas Akhir',
@@ -12,14 +16,18 @@ export const mockDocuments: DocumentItem[] = [
       text: '#00236f',
       border: '#cce5ff'
     },
-    relatedName: 'Aditya Pratama',
-    relatedRoleOrNim: 'NIM: 220401048',
+    relatedName: 'Dr. Aris Munandar',
+    responsibleIdentifier: 'NIP: 198501012010121001',
     uploadDate: '28 Sep 2026, 14:10',
     status: 'Aktif'
   },
   {
     id: 'doc-2',
-    filename: '[PKL]_220401012_Nadia_Salma_2026.pdf',
+    archiveNumber: 'ARS-2026-000002',
+    documentNumber: '017/PKL/RPL/IX/2026',
+    documentDate: '2026-09-28',
+    academicYear: '2026/2027',
+    filename: '[PKL]_Pedoman_Magang_RPL_2026.pdf',
     fileSize: '2.8 MB',
     shaHash: 'c4d1...33fe',
     category: 'Laporan PKL',
@@ -28,13 +36,17 @@ export const mockDocuments: DocumentItem[] = [
       text: '#006398',
       border: '#b3e5fc'
     },
-    relatedName: 'Nadia Salma',
-    relatedRoleOrNim: 'NIM: 220401012',
+    relatedName: 'Unit Akademik RPL',
+    responsibleIdentifier: 'NIP: 198703152012122002',
     uploadDate: '28 Sep 2026, 11:24',
     status: 'Aktif'
   },
   {
     id: 'doc-3',
+    archiveNumber: 'ARS-2026-000003',
+    documentNumber: 'RPS-RPL402-2026',
+    documentDate: '2026-09-27',
+    academicYear: '2026/2027',
     filename: '[RPS]_RPL402_Rekayasa_Web_2026.pdf',
     fileSize: '1.1 MB',
     shaHash: 'bb09...81ca',
@@ -45,12 +57,16 @@ export const mockDocuments: DocumentItem[] = [
       border: '#b2ebf2'
     },
     relatedName: 'Dr. Aris Munandar',
-    relatedRoleOrNim: 'Dosen Pengampu',
+    responsibleIdentifier: 'NIP: 198501012010121001',
     uploadDate: '27 Sep 2026, 16:45',
     status: 'Aktif'
   },
   {
     id: 'doc-4',
+    archiveNumber: 'ARS-2026-000004',
+    documentNumber: '084/SK-FT/IX/2026',
+    documentDate: '2026-09-26',
+    academicYear: '2026/2027',
     filename: '[SK]_SK-Dekan-084-Pembimbing-TA-2026.pdf',
     fileSize: '820 KB',
     shaHash: '77a0...55da',
@@ -61,13 +77,17 @@ export const mockDocuments: DocumentItem[] = [
       border: '#c8e6c9'
     },
     relatedName: 'Umum Prodi RPL',
-    relatedRoleOrNim: 'Fakultas Teknik',
+    responsibleIdentifier: 'Unit Akademik RPL',
     uploadDate: '26 Sep 2026, 09:12',
     status: 'Aktif'
   },
   {
     id: 'doc-5',
-    filename: '[DRAFT]_Laporan_Magang_Ilham_Kurnia.docx',
+    archiveNumber: 'ARS-2026-000005',
+    documentNumber: '021/PKL/RPL/IX/2026',
+    documentDate: '2026-09-25',
+    academicYear: '2026/2027',
+    filename: '[DRAFT]_Laporan_Evaluasi_Magang_RPL.docx',
     fileSize: '1.9 MB',
     shaHash: '3d91...77cb',
     category: 'Laporan PKL',
@@ -76,8 +96,8 @@ export const mockDocuments: DocumentItem[] = [
       text: '#006398',
       border: '#b3e5fc'
     },
-    relatedName: 'Ilham Kurnia',
-    relatedRoleOrNim: 'NIM: 220401099',
+    relatedName: 'Staf Administrasi RPL',
+    responsibleIdentifier: 'NIP: 199002022015032003',
     uploadDate: '25 Sep 2026, 18:30',
     status: 'Draft',
     issues: 'Belum ada Abstrak & Dosen Pembimbing'

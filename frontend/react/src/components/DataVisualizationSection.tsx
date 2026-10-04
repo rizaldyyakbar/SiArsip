@@ -133,7 +133,7 @@ export const DataVisualizationSection: React.FC = () => {
                 onClick={() => setViewMode('bulanan')}
                 className={`rounded-lg px-3 py-1 transition-all ${
                   viewMode === 'bulanan'
-                    ? 'bg-white text-[#00236f] shadow-xs'
+                    ? 'bg-white text-[#c8102e] shadow-xs'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -143,7 +143,7 @@ export const DataVisualizationSection: React.FC = () => {
                 onClick={() => setViewMode('semester')}
                 className={`rounded-lg px-3 py-1 transition-all ${
                   viewMode === 'semester'
-                    ? 'bg-white text-[#00236f] shadow-xs'
+                    ? 'bg-white text-[#c8102e] shadow-xs'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -155,14 +155,14 @@ export const DataVisualizationSection: React.FC = () => {
           {/* Highlight Banner Lonjakan */}
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#f0f3ff] p-3 text-xs">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#1e3a8a] text-white">
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#c8102e] text-white">
                 <TrendingUp className="h-3.5 w-3.5" />
               </div>
               <p className="text-slate-800 font-medium">
-                <span className="font-bold text-[#00236f]">Puncak Periode Sidang & Yudisium RPL:</span> Terjadi pada Juli (412 berkas) & Agustus (520 berkas).
+                <span className="font-bold text-[#c8102e]">Puncak Periode Sidang & Yudisium RPL:</span> Terjadi pada Juli (412 berkas) & Agustus (520 berkas).
               </p>
             </div>
-            <span className="rounded-md bg-white px-2 py-0.5 font-mono text-[10px] font-bold text-[#00236f] shadow-2xs">
+            <span className="rounded-md bg-white px-2 py-0.5 font-mono text-[10px] font-bold text-[#c8102e] shadow-2xs">
               Rekor TA 2026
             </span>
           </div>
@@ -188,7 +188,7 @@ export const DataVisualizationSection: React.FC = () => {
                 const isHovered = hoveredBar === trend.shortLabel;
 
                 let barColor = 'bg-[#93ccff] hover:bg-[#72baff]';
-                if (isAugust) barColor = 'bg-[#00236f] hover:bg-[#1e3a8a]';
+                if (isAugust) barColor = 'bg-[#c8102e] hover:bg-[#9e1025]';
                 else if (isSeptember) barColor = 'bg-[#006398] hover:bg-[#5bb8fe]';
 
                 return (
@@ -203,7 +203,7 @@ export const DataVisualizationSection: React.FC = () => {
                       <div
                         className={`absolute -top-7 rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold shadow-md transition-all z-20 ${
                           isAugust
-                            ? 'bg-[#00236f] text-white'
+                            ? 'bg-[#c8102e] text-white'
                             : 'bg-slate-800 text-white'
                         }`}
                       >
@@ -214,7 +214,7 @@ export const DataVisualizationSection: React.FC = () => {
                     {/* Bar Pill */}
                     <div
                       className={`w-full rounded-t-md transition-all duration-300 ${barColor} ${
-                        isHovered ? 'ring-2 ring-[#00236f]' : ''
+                        isHovered ? 'ring-2 ring-[#c8102e]' : ''
                       }`}
                       style={{ height: `${heightPercent}%` }}
                     />
@@ -223,7 +223,7 @@ export const DataVisualizationSection: React.FC = () => {
                     <span
                       className={`mt-2 text-[10px] font-medium leading-none ${
                         isAugust
-                          ? 'font-bold text-[#00236f]'
+                          ? 'font-bold text-[#c8102e]'
                           : isSeptember
                           ? 'font-bold text-[#006398]'
                           : 'text-slate-400'
@@ -242,7 +242,7 @@ export const DataVisualizationSection: React.FC = () => {
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 text-xs">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#00236f]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#c8102e]" />
               <span className="text-slate-600">Sidang Puncak</span>
             </div>
             <div className="flex items-center gap-1.5">

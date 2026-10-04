@@ -49,11 +49,11 @@ export const Header: React.FC<HeaderProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Cari judul berkas, NIM, nama mahasiswa, SK..."
-            className="w-full rounded-2xl border-0 bg-[#f0f3ff] py-2.5 pr-20 pl-10 text-sm text-[#111c2d] placeholder-slate-400 transition-all focus:bg-white focus:ring-2 focus:ring-[#00236f] focus:outline-hidden"
+            placeholder="Cari judul berkas, NIP, nomor dokumen, SK..."
+            className="w-full rounded-2xl border-0 bg-[#fff0f2] py-2.5 pr-20 pl-10 text-sm text-[#111c2d] placeholder-slate-400 transition-all focus:bg-white focus:ring-2 focus:ring-[#c8102e] focus:outline-hidden"
           />
 
-          <div className="absolute right-3 hidden items-center gap-1 rounded-md bg-[#e7eeff] px-2 py-1 text-[11px] font-semibold text-slate-500 sm:flex">
+          <div className="absolute right-3 hidden items-center gap-1 rounded-md bg-[#ffe5e8] px-2 py-1 text-[11px] font-semibold text-[#9e1025] sm:flex">
             <Command className="h-3 w-3" />
             <span>K</span>
           </div>
@@ -65,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Unggah Dokumen CTA */}
         <button
           onClick={onOpenUpload}
-          className="inline-flex items-center gap-2 rounded-xl bg-[#1e3a8a] px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition-all hover:bg-[#00236f] hover:shadow-md active:scale-95"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#c8102e] px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition-all hover:bg-[#9e1025] hover:shadow-md active:scale-95"
         >
           <Upload className="h-4 w-4" />
           <span className="hidden sm:inline">Unggah Dokumen</span>
@@ -89,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl z-50">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2 px-1">
                 <span className="text-xs font-bold text-slate-900">Pemberitahuan</span>
-                <span className="text-[11px] text-[#00236f] font-semibold cursor-pointer">Tandai Dibaca</span>
+                <span className="text-[11px] text-[#c8102e] font-semibold cursor-pointer">Tandai Dibaca</span>
               </div>
               <div className="mt-2 space-y-2 text-xs">
                 <div className="rounded-xl bg-red-50 p-2.5 text-red-900 border border-red-100">
@@ -97,7 +97,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <p className="text-[11px] text-slate-600 mt-0.5">1 file hash duplikat terdeteksi pada TA_220401048.</p>
                 </div>
                 <div className="rounded-xl bg-blue-50 p-2.5 text-blue-900 border border-blue-100">
-                  <p className="font-semibold text-xs text-[#00236f]">Batch Upload Berhasil</p>
+                  <p className="font-semibold text-xs text-[#c8102e]">Batch Upload Berhasil</p>
                   <p className="text-[11px] text-slate-600 mt-0.5">3 berkas Tugas Akhir berhasil diverifikasi ke repositori.</p>
                 </div>
               </div>
@@ -114,7 +114,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className="flex items-center gap-3 rounded-xl p-1.5 transition-colors hover:bg-slate-100 sm:px-2.5"
           >
-            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#00236f] to-[#5bb8fe] text-xs font-bold text-white shadow-xs ring-2 ring-white">
+            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#c8102e] to-[#ff7186] text-xs font-bold text-white shadow-xs ring-2 ring-white">
               RI
             </div>
             <div className="hidden text-left sm:block">

@@ -73,7 +73,7 @@ export const ConflictModal: React.FC<ConflictModalProps> = ({
                   Ukuran: 4.2 MB • Diunggah: 28 Sep 2026, 14:10
                 </p>
                 <p className="text-[11px] text-slate-500">
-                  Oleh: Aditya Pratama (Mahasiswa)
+                  Oleh: Sistem Arsip Prodi RPL
                 </p>
               </div>
             </div>

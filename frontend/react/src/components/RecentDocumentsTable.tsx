@@ -39,7 +39,7 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
 
           <button
             onClick={onViewAll}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#00236f] hover:text-[#1e3a8a] transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#c8102e] hover:text-[#9e1025] transition-colors"
           >
             <span>Lihat Semua Berkas</span>
             <ArrowRight className="h-4 w-4" />
@@ -87,7 +87,7 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
                         </div>
 
                         <div className="min-w-0 max-w-[240px]">
-                          <p className="truncate font-semibold text-[#111c2d] hover:text-[#00236f] cursor-pointer" onClick={() => onViewDocument(doc)}>
+                          <p className="truncate font-semibold text-[#111c2d] hover:text-[#c8102e] cursor-pointer" onClick={() => onViewDocument(doc)}>
                             {doc.filename}
                           </p>
                           {doc.issues ? (
@@ -96,9 +96,14 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
                               <span className="truncate">{doc.issues}</span>
                             </div>
                           ) : (
-                            <p className="mt-0.5 font-mono text-[11px] text-slate-400">
-                              {doc.fileSize} • SHA: {doc.shaHash}
-                            </p>
+                            <>
+                              <p className="mt-0.5 font-mono text-[10px] text-[#9e1025]">
+                                {doc.archiveNumber} • No. {doc.documentNumber}
+                              </p>
+                              <p className="font-mono text-[11px] text-slate-400">
+                                {doc.fileSize} • SHA: {doc.shaHash}
+                              </p>
+                            </>
                           )}
                         </div>
                       </div>
@@ -117,10 +122,10 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
                       </span>
                     </td>
 
-                    {/* Terkait (Mahasiswa / Dosen) */}
+                    {/* Penanggung jawab dokumen */}
                     <td className="px-3 py-3.5 whitespace-nowrap">
                       <p className="font-semibold text-[#111c2d]">{doc.relatedName}</p>
-                      <p className="text-[11px] text-slate-500">{doc.relatedRoleOrNim}</p>
+                      <p className="text-[11px] text-slate-500">{doc.responsibleIdentifier}</p>
                     </td>
 
                     {/* Tanggal */}
@@ -148,7 +153,7 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
                       {isDraft ? (
                         <button
                           onClick={() => onViewDocument(doc)}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-[#1e3a8a] px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-[#00236f] transition-all"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-[#c8102e] px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-[#9e1025] transition-all"
                         >
                           <Edit3 className="h-3.5 w-3.5" />
                           <span>Edit</span>

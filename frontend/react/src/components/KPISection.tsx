@@ -19,7 +19,7 @@ export const KPISection: React.FC = () => {
             <span className="text-[11px] font-bold tracking-wider text-[#444651] uppercase">
               TOTAL DOKUMEN TERSIMPAN
             </span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#e7eeff] text-[#00236f] transition-transform group-hover:scale-105">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#ffe5e8] text-[#c8102e] transition-transform group-hover:scale-105">
               <FolderArchive className="h-5 w-5" />
             </div>
           </div>
@@ -37,7 +37,7 @@ export const KPISection: React.FC = () => {
         </div>
 
         <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
-          <span className="rounded-md bg-[#dee8ff] px-2 py-0.5 text-[11px] font-semibold text-[#00236f]">
+          <span className="rounded-md bg-[#ffe5e8] px-2 py-0.5 text-[11px] font-semibold text-[#9e1025]">
             98.4% Terindeks Lengkap
           </span>
           <span className="font-mono text-[11px] text-slate-400">RPL-DB</span>
@@ -71,8 +71,8 @@ export const KPISection: React.FC = () => {
 
         <div className="mt-4 border-t border-slate-100 pt-3">
           <div className="flex items-center justify-between text-xs">
-            <div className="h-2 w-32 rounded-full bg-[#f0f3ff] overflow-hidden">
-              <div className="h-full rounded-full bg-[#006398]" style={{ width: '74%' }} />
+            <div className="h-2 w-32 rounded-full bg-[#ffe5e8] overflow-hidden">
+              <div className="h-full rounded-full bg-[#c8102e]" style={{ width: '74%' }} />
             </div>
             <span className="text-[11px] font-bold text-[#444651]">74% Target</span>
           </div>
@@ -86,7 +86,7 @@ export const KPISection: React.FC = () => {
             <span className="text-[11px] font-bold tracking-wider text-[#444651] uppercase">
               DOKUMEN STATUS DRAFT
             </span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#dee8ff] text-[#444651] transition-transform group-hover:scale-105">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fff0c2] text-[#8a5a00] transition-transform group-hover:scale-105">
               <FileEdit className="h-5 w-5" />
             </div>
           </div>

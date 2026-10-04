@@ -15,6 +15,7 @@ import { AuditActivityPanel } from './components/AuditActivityPanel';
 import { ConflictModal } from './components/ConflictModal';
 import { UploadModal } from './components/UploadModal';
 import { DocumentDetailModal } from './components/DocumentDetailModal';
+import { DocumentPreviewModal } from './components/DocumentPreviewModal';
 import { mockDocuments } from './mockData';
 import type { DocumentItem } from './types';
 
@@ -28,6 +29,7 @@ function App() {
   const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<DocumentItem | null>(null);
+  const [previewDocument, setPreviewDocument] = useState<DocumentItem | null>(null);
   const [notificationToast, setNotificationToast] = useState<string | null>(null);
 
   // Documents state
@@ -40,8 +42,8 @@ function App() {
     return documents.filter(
       (d) =>
         d.filename.toLowerCase().includes(q) ||
-        d.relatedName.toLowerCase().includes(q) ||
-        d.relatedRoleOrNim.toLowerCase().includes(q) ||
+        d.relatedName?.toLowerCase().includes(q) ||
+        d.responsibleIdentifier.toLowerCase().includes(q) ||
         d.category.toLowerCase().includes(q)
     );
   }, [documents, searchQuery]);
@@ -63,10 +65,10 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#fff8f8] text-[#111c2d] flex flex-col font-sans">
       {/* Toast Notification */}
       {notificationToast && (
-        <div className="fixed top-5 right-5 z-60 flex items-center gap-2.5 rounded-2xl bg-[#00236f] px-4 py-3 text-xs font-semibold text-white shadow-2xl animate-in slide-in-from-top-4 duration-300">
+        <div className="fixed top-5 right-5 z-60 flex items-center gap-2.5 rounded-2xl bg-[#c8102e] px-4 py-3 text-xs font-semibold text-white shadow-2xl animate-in slide-in-from-top-4 duration-300">
           <Check className="h-4 w-4 text-[#85f8c4]" />
           <span>{notificationToast}</span>
         </div>
@@ -100,7 +102,7 @@ function App() {
                 <div>
                   {/* Category / Semester Pill */}
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="rounded-md bg-[#00236f] px-2.5 py-0.5 font-bold tracking-wider text-white uppercase text-[10px]">
+                    <span className="rounded-md bg-[#c8102e] px-2.5 py-0.5 font-bold tracking-wider text-white uppercase text-[10px]">
                       ARSIP JURUSAN RPL
                     </span>
                     <span className="text-slate-400">•</span>
@@ -129,7 +131,7 @@ function App() {
 
                   <button
                     onClick={() => setIsUploadModalOpen(true)}
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#00236f] px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#1e3a8a] transition-all active:scale-95"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#c8102e] px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#9e1025] transition-all active:scale-95"
                   >
                     <Plus className="h-4 w-4" />
                     <span>Unggah Dokumen Baru</span>
@@ -218,7 +220,7 @@ function App() {
                 </div>
                 <button
                   onClick={() => setCurrentTab('dashboard')}
-                  className="rounded-xl bg-[#00236f] px-4 py-2 text-xs font-semibold text-white hover:bg-[#1e3a8a]"
+                  className="rounded-xl bg-[#c8102e] px-4 py-2 text-xs font-semibold text-white hover:bg-[#9e1025]"
                 >
                   Kembali ke Dashboard
                 </button>
@@ -272,6 +274,12 @@ function App() {
       <DocumentDetailModal
         document={selectedDocument}
         onClose={() => setSelectedDocument(null)}
+        onPreview={(document) => setPreviewDocument(document)}
+      />
+
+      <DocumentPreviewModal
+        document={previewDocument}
+        onClose={() => setPreviewDocument(null)}
       />
     </div>
   );

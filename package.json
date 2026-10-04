@@ -3,6 +3,7 @@
   "private": true,
   "workspaces": ["frontend/react"],
   "scripts": {
+    "dev": "npm run dev:react",
     "dev:react": "npm --workspace frontend/react run dev",
     "build": "npm run build:react",
     "build:react": "npm --workspace frontend/react run build",

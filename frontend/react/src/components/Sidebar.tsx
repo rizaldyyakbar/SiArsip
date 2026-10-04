@@ -35,7 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const navManagement = [
-    { id: 'mahasiswa-dosen', label: 'Mahasiswa & Dosen', icon: Users },
+    { id: 'dosen', label: 'Dosen', icon: Users },
     { id: 'kategori-tag', label: 'Kategori & Tag', icon: Tags },
     { id: 'tempat-sampah', label: 'Tempat Sampah', icon: Trash2 },
   ];
@@ -66,7 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex w-72 flex-col justify-between bg-[#00236f] text-white shadow-2xl transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 flex w-72 flex-col justify-between bg-[#c8102e] text-white shadow-2xl transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           isOpenMobile ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -74,14 +74,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Logo Section */}
           <div className="flex items-center justify-between px-2 pb-6 border-b border-white/10">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-tr from-[#1e3a8a] to-[#5bb8fe] text-white shadow-md shadow-[#00236f]/50">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-white shadow-md shadow-[#8f0d24]/40">
                 <FolderArchive className="h-6 w-6 text-white" />
               </div>
               <div>
                 <h1 className="text-lg font-bold tracking-tight text-white leading-tight">
                   Arsip Digital
                 </h1>
-                <p className="text-[10px] font-semibold tracking-wider text-[#b6c4ff] uppercase">
+                <p className="text-[10px] font-semibold tracking-wider text-[#ffd6dc] uppercase">
                   PRODI REKAYASA PERANGKAT LUNAK
                 </p>
               </div>
@@ -109,17 +109,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onClick={() => handleNavClick(item.id, item.isAction)}
                     className={`group flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${
                       isActive
-                        ? 'bg-[#1e3a8a] text-white shadow-sm ring-1 ring-white/20'
-                        : 'text-[#dce1ff] hover:bg-white/10 hover:text-white'
+                        ? 'bg-[#8f0d24] text-white shadow-sm ring-1 ring-white/20'
+                        : 'text-[#ffe5e8] hover:bg-white/10 hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className={`h-4.5 w-4.5 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-[#b6c4ff]'}`} />
+                      <Icon className={`h-4.5 w-4.5 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-[#ffd6dc]'}`} />
                       <span>{item.label}</span>
                     </div>
 
                     {item.badge && (
-                      <span className="rounded-md bg-[#5bb8fe] px-2 py-0.5 text-[10px] font-extrabold tracking-wider text-[#00236f] uppercase shadow-xs">
+                      <span className="rounded-md bg-white px-2 py-0.5 text-[10px] font-extrabold tracking-wider text-[#9e1025] uppercase shadow-xs">
                         {item.badge}
                       </span>
                     )}
@@ -130,7 +130,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             {/* Management Section */}
             <div>
-              <p className="px-3 pb-2 text-[10px] font-bold tracking-widest text-[#b6c4ff]/80 uppercase">
+                <p className="px-3 pb-2 text-[10px] font-bold tracking-widest text-[#ffd6dc]/80 uppercase">
                 MANAJEMEN
               </p>
               <div className="space-y-1">
@@ -143,11 +143,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       onClick={() => handleNavClick(item.id)}
                       className={`group flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${
                         isActive
-                          ? 'bg-[#1e3a8a] text-white shadow-sm'
-                          : 'text-[#dce1ff] hover:bg-white/10 hover:text-white'
+                          ? 'bg-[#8f0d24] text-white shadow-sm'
+                          : 'text-[#ffe5e8] hover:bg-white/10 hover:text-white'
                       }`}
                     >
-                      <Icon className={`h-4.5 w-4.5 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-[#b6c4ff]'}`} />
+                      <Icon className={`h-4.5 w-4.5 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-[#ffd6dc]'}`} />
                       <span>{item.label}</span>
                     </button>
                   );
@@ -157,7 +157,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             {/* System Section */}
             <div>
-              <p className="px-3 pb-2 text-[10px] font-bold tracking-widest text-[#b6c4ff]/80 uppercase">
+                <p className="px-3 pb-2 text-[10px] font-bold tracking-widest text-[#ffd6dc]/80 uppercase">
                 SISTEM
               </p>
               <div className="space-y-1">
@@ -170,11 +170,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       onClick={() => handleNavClick(item.id)}
                       className={`group flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${
                         isActive
-                          ? 'bg-[#1e3a8a] text-white shadow-sm'
-                          : 'text-[#dce1ff] hover:bg-white/10 hover:text-white'
+                          ? 'bg-[#8f0d24] text-white shadow-sm'
+                          : 'text-[#ffe5e8] hover:bg-white/10 hover:text-white'
                       }`}
                     >
-                      <Icon className={`h-4.5 w-4.5 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-[#b6c4ff]'}`} />
+                      <Icon className={`h-4.5 w-4.5 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-[#ffd6dc]'}`} />
                       <span>{item.label}</span>
                     </button>
                   );
