@@ -16,7 +16,7 @@ import { ConflictModal } from './components/ConflictModal';
 import { UploadModal } from './components/UploadModal';
 import { DocumentDetailModal } from './components/DocumentDetailModal';
 import { DocumentPreviewModal } from './components/DocumentPreviewModal';
-import { mockDocuments } from './mockData';
+import { mockDocuments, mockAcademicYears } from './mockData';
 import type { DocumentItem } from './types';
 
 function App() {
@@ -42,9 +42,11 @@ function App() {
     return documents.filter(
       (d) =>
         d.filename.toLowerCase().includes(q) ||
-        d.relatedName?.toLowerCase().includes(q) ||
         d.responsibleIdentifier.toLowerCase().includes(q) ||
-        d.category.toLowerCase().includes(q)
+        d.documentNumber.toLowerCase().includes(q) ||
+        d.academicYear.toLowerCase().includes(q) ||
+        d.category.toLowerCase().includes(q) ||
+        (d.accreditationCriterion && d.accreditationCriterion.toLowerCase().includes(q))
     );
   }, [documents, searchQuery]);
 
@@ -242,7 +244,70 @@ function App() {
                 </div>
               )}
 
-              {!['daftar-arsip', 'audit-log'].includes(currentTab) && (
+              {currentTab === 'tahun-akademik' && (
+                <div className="mt-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-sm font-bold text-[#111c2d]">
+                        Daftar Master Data Tahun Akademik
+                      </h2>
+                      <p className="text-xs text-slate-500">
+                        Referensi baku tahun dan semester untuk pengelompokan arsip digital
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => showToast('Form tambah Tahun Akademik baru siap diintegrasikan')}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#c8102e] px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#9e1025] transition-all"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span>Tambah Tahun Akademik</span>
+                    </button>
+                  </div>
+
+                  <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-100 bg-[#f0f3ff]/70 text-[11px] font-bold text-[#444651]">
+                          <th className="py-3 pl-4 pr-3">TAHUN AKADEMIK</th>
+                          <th className="px-3 py-3">SEMESTER</th>
+                          <th className="px-3 py-3">LABEL SISTEM</th>
+                          <th className="px-3 py-3">STATUS</th>
+                          <th className="py-3 pr-4 pl-3 text-right">JUMLAH DOKUMEN</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-medium">
+                        {mockAcademicYears.map((ay) => {
+                          const docCount = documents.filter((d) => d.academicYear === ay.label).length;
+                          return (
+                            <tr key={ay.id} className="hover:bg-slate-50/80">
+                              <td className="py-3 pl-4 pr-3 font-semibold text-[#111c2d]">{ay.year}</td>
+                              <td className="px-3 py-3">{ay.semester}</td>
+                              <td className="px-3 py-3 font-mono font-semibold text-[#00236f]">{ay.label}</td>
+                              <td className="px-3 py-3">
+                                {ay.isActive ? (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-[#85f8c4]/40 px-2.5 py-0.5 text-[11px] font-bold text-[#002114]">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+                                    Aktif Berjalan
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-600">
+                                    Lampau
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-3 pr-4 pl-3 text-right font-mono text-slate-700">
+                                {docCount} Berkas
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {!['daftar-arsip', 'audit-log', 'tahun-akademik'].includes(currentTab) && (
                 <div className="py-16 text-center">
                   <FolderArchive className="mx-auto h-12 w-12 text-slate-300" />
                   <p className="mt-3 text-sm font-semibold text-slate-600 capitalize">

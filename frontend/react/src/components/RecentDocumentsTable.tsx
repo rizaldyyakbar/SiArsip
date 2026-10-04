@@ -51,10 +51,10 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-slate-100 bg-[#f0f3ff]/70 text-[11px] font-bold tracking-wider text-[#444651]">
-                <th className="py-3 pl-4 pr-3 rounded-l-xl">DOKUMEN / DISPLAY NAME</th>
-                <th className="px-3 py-3">KATEGORI</th>
-                <th className="px-3 py-3">TERKAIT</th>
-                <th className="px-3 py-3">TANGGAL</th>
+                <th className="py-3 pl-4 pr-3 rounded-l-xl">DOKUMEN & NO. RESMI</th>
+                <th className="px-3 py-3">KATEGORI & AKREDITASI</th>
+                <th className="px-3 py-3">NIP / PENANGGUNG JAWAB</th>
+                <th className="px-3 py-3">TGL DOKUMEN / AKADEMIK</th>
                 <th className="px-3 py-3">STATUS</th>
                 <th className="py-3 pr-4 pl-3 text-right rounded-r-xl">AKSI</th>
               </tr>
@@ -97,10 +97,10 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
                             </div>
                           ) : (
                             <>
-                              <p className="mt-0.5 font-mono text-[10px] text-[#9e1025]">
+                              <p className="mt-0.5 font-mono text-[10px] text-[#9e1025] truncate">
                                 {doc.archiveNumber} • No. {doc.documentNumber}
                               </p>
-                              <p className="font-mono text-[11px] text-slate-400">
+                              <p className="font-mono text-[10px] text-slate-400">
                                 {doc.fileSize} • SHA: {doc.shaHash}
                               </p>
                             </>
@@ -109,28 +109,35 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
                       </div>
                     </td>
 
-                    {/* Kategori */}
+                    {/* Kategori & Akreditasi */}
                     <td className="px-3 py-3.5 whitespace-nowrap">
-                      <span
-                        className="inline-block rounded-md px-2.5 py-1 text-[11px] font-semibold"
-                        style={{
-                          backgroundColor: doc.categoryTheme.bg,
-                          color: doc.categoryTheme.text,
-                        }}
-                      >
-                        {doc.category}
-                      </span>
+                      <div>
+                        <span
+                          className="inline-block rounded-md px-2.5 py-1 text-[11px] font-semibold"
+                          style={{
+                            backgroundColor: doc.categoryTheme.bg,
+                            color: doc.categoryTheme.text,
+                          }}
+                        >
+                          {doc.category}
+                        </span>
+                        {doc.accreditationInstrument && (
+                          <p className="mt-1 text-[10px] font-semibold text-[#9e1025]">
+                            LAM INFOKOM 2.1
+                          </p>
+                        )}
+                      </div>
                     </td>
 
-                    {/* Penanggung jawab dokumen */}
+                    {/* Penanggung jawab dokumen (NIP) */}
                     <td className="px-3 py-3.5 whitespace-nowrap">
-                      <p className="font-semibold text-[#111c2d]">{doc.relatedName}</p>
-                      <p className="text-[11px] text-slate-500">{doc.responsibleIdentifier}</p>
+                      <p className="font-mono font-semibold text-[#111c2d]">{doc.responsibleIdentifier}</p>
                     </td>
 
-                    {/* Tanggal */}
-                    <td className="px-3 py-3.5 whitespace-nowrap font-mono text-slate-600">
-                      {doc.uploadDate}
+                    {/* Tanggal Dokumen & Tahun Akademik */}
+                    <td className="px-3 py-3.5 whitespace-nowrap">
+                      <p className="font-medium text-[#111c2d]">{doc.documentDate}</p>
+                      <p className="font-mono text-[10px] text-slate-500">{doc.academicYear}</p>
                     </td>
 
                     {/* Status */}

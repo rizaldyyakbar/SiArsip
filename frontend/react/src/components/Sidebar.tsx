@@ -5,6 +5,7 @@ import {
   UploadCloud,
   Users,
   Tags,
+  Calendar,
   Trash2,
   UserCog,
   FileClock,
@@ -37,6 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navManagement = [
     { id: 'dosen', label: 'Dosen', icon: Users },
     { id: 'kategori-tag', label: 'Kategori & Tag', icon: Tags },
+    { id: 'tahun-akademik', label: 'Tahun Akademik', icon: Calendar },
     { id: 'tempat-sampah', label: 'Tempat Sampah', icon: Trash2 },
   ];
 

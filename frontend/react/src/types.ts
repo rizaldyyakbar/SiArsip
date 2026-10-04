@@ -6,6 +6,7 @@ export interface DocumentItem {
   academicYear: string;
   previewUrl?: string;
   accreditationInstrument?: string;
+  accreditationCriterion?: string;
   evidenceType?: string;
   filename: string;
   fileSize: string;
@@ -16,11 +17,23 @@ export interface DocumentItem {
     text: string;
     border?: string;
   };
-  relatedName?: string;
   responsibleIdentifier: string;
   uploadDate: string;
   status: 'Aktif' | 'Draft' | 'Tertunda';
   issues?: string;
+}
+
+export interface AcademicYearMaster {
+  id: string;
+  year: string;
+  semester: 'Ganjil' | 'Genap';
+  label: string;
+  isActive: boolean;
+}
+
+export interface LamInfokomCriterion {
+  code: string;
+  title: string;
 }
 
 export interface AuditLogItem {

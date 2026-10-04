@@ -61,20 +61,48 @@ export const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
             </div>
           </div>
 
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 p-3">
+              <span className="flex items-center gap-1.5 text-slate-500 font-medium">
+                <Calendar className="h-3.5 w-3.5 text-[#c8102e]" /> Tanggal Dokumen
+              </span>
+              <p className="mt-1 font-medium text-[#111c2d]">{document.documentDate}</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 p-3">
+              <span className="flex items-center gap-1.5 text-slate-500 font-medium">
+                <Tag className="h-3.5 w-3.5 text-[#c8102e]" /> Tahun Akademik
+              </span>
+              <p className="mt-1 font-semibold text-[#111c2d]">{document.academicYear}</p>
+            </div>
+          </div>
+
           {document.accreditationInstrument && (
             <div className="rounded-2xl border border-red-100 bg-[#fff8f8] p-4">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-[#9e1025]">
-                Pemetaan Akreditasi
-              </p>
-              <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <p className="text-[11px] text-slate-500">Instrumen</p>
-                  <p className="mt-1 font-semibold text-[#111c2d]">LAM INFOKOM - Instrumen {document.accreditationInstrument}</p>
+              <div className="flex items-center justify-between border-b border-red-100 pb-2">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#9e1025]">
+                  Pemetaan Akreditasi
+                </p>
+                <span className="rounded bg-red-100 px-2 py-0.5 text-[10px] font-bold text-[#9e1025]">
+                  LAM INFOKOM 2.1
+                </span>
+              </div>
+              <div className="mt-3 space-y-2">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <p className="text-[11px] text-slate-500">Instrumen</p>
+                    <p className="mt-0.5 font-semibold text-[#111c2d]">{document.accreditationInstrument}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-slate-500">Jenis Bukti</p>
+                    <p className="mt-0.5 font-semibold text-[#111c2d]">{document.evidenceType || 'Dokumen Pendukung'}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[11px] text-slate-500">Jenis Bukti</p>
-                  <p className="mt-1 font-semibold text-[#111c2d]">{document.evidenceType}</p>
-                </div>
+                {document.accreditationCriterion && (
+                  <div className="pt-2 border-t border-red-100/60">
+                    <p className="text-[11px] text-slate-500">Kriteria LAM INFOKOM</p>
+                    <p className="mt-0.5 font-semibold text-[#9e1025]">{document.accreditationCriterion}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -96,10 +124,9 @@ export const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
 
             <div className="rounded-xl border border-slate-200 p-3">
               <span className="flex items-center gap-1.5 text-slate-500 font-medium">
-                <User className="h-3.5 w-3.5 text-[#c8102e]" /> Terkait
+                <User className="h-3.5 w-3.5 text-[#c8102e]" /> Penanggung Jawab
               </span>
-              <p className="mt-1 font-semibold text-[#111c2d]">{document.relatedName}</p>
-              <p className="text-[11px] text-slate-500">{document.responsibleIdentifier}</p>
+              <p className="mt-1 font-mono font-semibold text-[#111c2d]">{document.responsibleIdentifier}</p>
             </div>
 
             <div className="rounded-xl border border-slate-200 p-3">

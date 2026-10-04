@@ -1,4 +1,31 @@
-import type { DocumentItem, AuditLogItem, CategoryDistribution, MonthlyTrend } from './types';
+import type {
+  DocumentItem,
+  AuditLogItem,
+  CategoryDistribution,
+  MonthlyTrend,
+  AcademicYearMaster,
+  LamInfokomCriterion
+} from './types';
+
+export const mockAcademicYears: AcademicYearMaster[] = [
+  { id: 'ay-1', year: '2026/2027', semester: 'Ganjil', label: '2026/2027 Ganjil', isActive: true },
+  { id: 'ay-2', year: '2025/2026', semester: 'Genap', label: '2025/2026 Genap', isActive: false },
+  { id: 'ay-3', year: '2025/2026', semester: 'Ganjil', label: '2025/2026 Ganjil', isActive: false },
+  { id: 'ay-4', year: '2024/2025', semester: 'Genap', label: '2024/2025 Genap', isActive: false },
+  { id: 'ay-5', year: '2024/2025', semester: 'Ganjil', label: '2024/2025 Ganjil', isActive: false }
+];
+
+export const mockLamInfokomCriteria: LamInfokomCriterion[] = [
+  { code: 'C.1', title: 'C.1 - Visi, Misi, Tujuan, dan Strategi (VMTS)' },
+  { code: 'C.2', title: 'C.2 - Tata Pamong, Tata Kelola, dan Kerjasama' },
+  { code: 'C.3', title: 'C.3 - Mahasiswa' },
+  { code: 'C.4', title: 'C.4 - Sumber Daya Manusia (SDM)' },
+  { code: 'C.5', title: 'C.5 - Keuangan, Sarana, dan Prasarana' },
+  { code: 'C.6', title: 'C.6 - Pendidikan (Kurikulum & Pembelajaran)' },
+  { code: 'C.7', title: 'C.7 - Penelitian' },
+  { code: 'C.8', title: 'C.8 - Pengabdian kepada Masyarakat (PkM)' },
+  { code: 'C.9', title: 'C.9 - Luaran dan Capaian Tridharma' }
+];
 
 export const mockDocuments: DocumentItem[] = [
   {
@@ -6,7 +33,7 @@ export const mockDocuments: DocumentItem[] = [
     archiveNumber: 'ARS-2026-000001',
     documentNumber: '004/TA/RPL/IX/2026',
     documentDate: '2026-09-28',
-    academicYear: '2026/2027',
+    academicYear: '2026/2027 Ganjil',
     filename: '[TA]_RPL_Implementasi_Sistem_Arsip_2026.pdf',
     fileSize: '4.2 MB',
     shaHash: 'e8f2...9a1b',
@@ -16,7 +43,6 @@ export const mockDocuments: DocumentItem[] = [
       text: '#00236f',
       border: '#cce5ff'
     },
-    relatedName: 'Dr. Aris Munandar',
     responsibleIdentifier: 'NIP: 198501012010121001',
     uploadDate: '28 Sep 2026, 14:10',
     status: 'Aktif'
@@ -26,7 +52,7 @@ export const mockDocuments: DocumentItem[] = [
     archiveNumber: 'ARS-2026-000002',
     documentNumber: '017/PKL/RPL/IX/2026',
     documentDate: '2026-09-28',
-    academicYear: '2026/2027',
+    academicYear: '2026/2027 Ganjil',
     filename: '[PKL]_Pedoman_Magang_RPL_2026.pdf',
     fileSize: '2.8 MB',
     shaHash: 'c4d1...33fe',
@@ -36,7 +62,6 @@ export const mockDocuments: DocumentItem[] = [
       text: '#006398',
       border: '#b3e5fc'
     },
-    relatedName: 'Unit Akademik RPL',
     responsibleIdentifier: 'NIP: 198703152012122002',
     uploadDate: '28 Sep 2026, 11:24',
     status: 'Aktif'
@@ -46,7 +71,7 @@ export const mockDocuments: DocumentItem[] = [
     archiveNumber: 'ARS-2026-000003',
     documentNumber: 'RPS-RPL402-2026',
     documentDate: '2026-09-27',
-    academicYear: '2026/2027',
+    academicYear: '2026/2027 Ganjil',
     filename: '[RPS]_RPL402_Rekayasa_Web_2026.pdf',
     fileSize: '1.1 MB',
     shaHash: 'bb09...81ca',
@@ -56,7 +81,9 @@ export const mockDocuments: DocumentItem[] = [
       text: '#00476e',
       border: '#b2ebf2'
     },
-    relatedName: 'Dr. Aris Munandar',
+    accreditationInstrument: 'LAM INFOKOM 2.1',
+    accreditationCriterion: 'C.6 - Pendidikan (Kurikulum & Pembelajaran)',
+    evidenceType: 'Dokumen Kebijakan & Rencana Pembelajaran Semester',
     responsibleIdentifier: 'NIP: 198501012010121001',
     uploadDate: '27 Sep 2026, 16:45',
     status: 'Aktif'
@@ -66,7 +93,7 @@ export const mockDocuments: DocumentItem[] = [
     archiveNumber: 'ARS-2026-000004',
     documentNumber: '084/SK-FT/IX/2026',
     documentDate: '2026-09-26',
-    academicYear: '2026/2027',
+    academicYear: '2026/2027 Ganjil',
     filename: '[SK]_SK-Dekan-084-Pembimbing-TA-2026.pdf',
     fileSize: '820 KB',
     shaHash: '77a0...55da',
@@ -76,8 +103,10 @@ export const mockDocuments: DocumentItem[] = [
       text: '#004a32',
       border: '#c8e6c9'
     },
-    relatedName: 'Umum Prodi RPL',
-    responsibleIdentifier: 'Unit Akademik RPL',
+    accreditationInstrument: 'LAM INFOKOM 2.1',
+    accreditationCriterion: 'C.4 - Sumber Daya Manusia (SDM)',
+    evidenceType: 'SK Penetapan Pembimbing Tugas Akhir',
+    responsibleIdentifier: 'NIP: 197805122005011003',
     uploadDate: '26 Sep 2026, 09:12',
     status: 'Aktif'
   },
@@ -86,7 +115,7 @@ export const mockDocuments: DocumentItem[] = [
     archiveNumber: 'ARS-2026-000005',
     documentNumber: '021/PKL/RPL/IX/2026',
     documentDate: '2026-09-25',
-    academicYear: '2026/2027',
+    academicYear: '2026/2027 Ganjil',
     filename: '[DRAFT]_Laporan_Evaluasi_Magang_RPL.docx',
     fileSize: '1.9 MB',
     shaHash: '3d91...77cb',
@@ -96,11 +125,32 @@ export const mockDocuments: DocumentItem[] = [
       text: '#006398',
       border: '#b3e5fc'
     },
-    relatedName: 'Staf Administrasi RPL',
     responsibleIdentifier: 'NIP: 199002022015032003',
     uploadDate: '25 Sep 2026, 18:30',
     status: 'Draft',
-    issues: 'Belum ada Abstrak & Dosen Pembimbing'
+    issues: 'Belum ada Abstrak & NIP Pembimbing'
+  },
+  {
+    id: 'doc-6',
+    archiveNumber: 'ARS-2026-000006',
+    documentNumber: '001/AKRED/LAM-INFOKOM/2026',
+    documentDate: '2026-09-24',
+    academicYear: '2026/2027 Ganjil',
+    filename: '[AKRED]_LED_Prodi_RPL_Instrumen_2.1.pdf',
+    fileSize: '6.4 MB',
+    shaHash: '4f8a...12ee',
+    category: 'Dokumen Akreditasi',
+    categoryTheme: {
+      bg: '#fdf2f8',
+      text: '#9d174d',
+      border: '#fbcfe8'
+    },
+    accreditationInstrument: 'LAM INFOKOM 2.1',
+    accreditationCriterion: 'C.1 - Visi, Misi, Tujuan, dan Strategi (VMTS)',
+    evidenceType: 'Laporan Evaluasi Diri (LED)',
+    responsibleIdentifier: 'NIP: 197508202000031001',
+    uploadDate: '24 Sep 2026, 10:15',
+    status: 'Aktif'
   }
 ];
 
