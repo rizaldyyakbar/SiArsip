@@ -66,3 +66,29 @@ export interface MonthlyTrend {
   type: 'sidang-puncak' | 'normal' | 'aktif';
   badgeNote?: string;
 }
+
+export interface Lecturer {
+  id: number;
+  nip: string;
+  name: string;
+  email: string;
+  phone: string;
+  position: string;
+  isActive: boolean;
+  documentCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CategoryItem {
+  id: number;
+  name: string;
+  code: string;
+  description: string;
+  colorBg: string;
+  colorText: string;
+  documentCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+

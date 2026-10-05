@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UploadCloud, X, Hash, AlertCircle, Loader2 } from 'lucide-react';
-import type { DocumentItem, AcademicYearMaster, LamInfokomCriterion } from '../types';
+import type { DocumentItem, AcademicYearMaster, LamInfokomCriterion, CategoryItem, Lecturer } from '../types';
 import { mockAcademicYears, mockLamInfokomCriteria } from '../mockData';
 import { getCategoryTheme } from '../api';
 
@@ -14,6 +14,8 @@ interface UploadModalProps {
   ) => Promise<{ success: boolean; conflict?: any }>;
   academicYears?: AcademicYearMaster[];
   criteria?: LamInfokomCriterion[];
+  categories?: CategoryItem[];
+  lecturers?: Lecturer[];
 }
 
 export const UploadModal: React.FC<UploadModalProps> = ({
@@ -22,7 +24,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   onSuccess,
   onUpload,
   academicYears = mockAcademicYears,
-  criteria = mockLamInfokomCriteria
+  criteria = mockLamInfokomCriteria,
+  categories = [],
+  lecturers = []
 }) => {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Tugas Akhir');
@@ -193,32 +197,67 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#00236f] focus:ring-1 focus:ring-[#00236f] outline-hidden"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#00236f] focus:ring-1 focus:ring-[#00236f] outline-hidden font-medium"
               >
-                <option value="Tugas Akhir">Tugas Akhir / Skripsi</option>
-                <option value="Laporan PKL">Laporan PKL & Magang</option>
-                <option value="Kurikulum & RPS">Kurikulum & RPS</option>
-                <option value="SK & Surat">SK & Surat Keputusan</option>
-                <option value="Berita Acara">Berita Acara & Nilai</option>
-                <option value="Akreditasi">Dokumen Akreditasi</option>
+                {categories.length > 0 ? (
+                  categories.map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.name} ({c.code})
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="Tugas Akhir">Tugas Akhir / Skripsi</option>
+                    <option value="Laporan PKL">Laporan PKL & Magang</option>
+                    <option value="Kurikulum & RPS">Kurikulum & RPS</option>
+                    <option value="SK & Surat">SK & Surat Keputusan</option>
+                    <option value="Berita Acara">Berita Acara & Nilai</option>
+                    <option value="Akreditasi">Dokumen Akreditasi</option>
+                  </>
+                )}
               </select>
             </div>
 
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
-                NIP Dosen Penanggung Jawab
+                Dosen Penanggung Jawab
               </label>
-              <input
-                type="text"
-                required={!isAccreditation}
-                value={nip}
-                onChange={(e) => setNip(e.target.value)}
-                placeholder="Contoh: 198501012010121001"
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#00236f] focus:ring-1 focus:ring-[#00236f] outline-hidden"
-              />
-              <p className="mt-1 text-[10px] text-slate-400">
-                Cukup masukkan NIP (nama dosen tidak diperlukan)
-              </p>
+              {lecturers.length > 0 ? (
+                <div className="space-y-1">
+                  <select
+                    value={nip}
+                    onChange={(e) => setNip(e.target.value)}
+                    required={!isAccreditation}
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#00236f] focus:ring-1 focus:ring-[#00236f] outline-hidden font-medium"
+                  >
+                    <option value="">-- Pilih Dosen Penanggung Jawab --</option>
+                    {lecturers
+                      .filter((l) => l.isActive)
+                      .map((l) => (
+                        <option key={l.id} value={l.nip}>
+                          {l.name} (NIP: {l.nip})
+                        </option>
+                      ))}
+                  </select>
+                  <p className="text-[10px] text-slate-400">
+                    NIP terpilih: <span className="font-mono font-semibold text-slate-700">{nip || '-'}</span>
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <input
+                    type="text"
+                    required={!isAccreditation}
+                    value={nip}
+                    onChange={(e) => setNip(e.target.value)}
+                    placeholder="Contoh: 198501012010121001"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#00236f] focus:ring-1 focus:ring-[#00236f] outline-hidden"
+                  />
+                  <p className="mt-1 text-[10px] text-slate-400">
+                    Cukup masukkan NIP (nama dosen tidak diperlukan)
+                  </p>
+                </>
+              )}
             </div>
           </div>
 
@@ -252,7 +291,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 
           <div>
             <label className="block font-semibold text-slate-700 mb-1">
-              Master Data Tahun Akademik <span className="text-[#c8102e]">*</span>
+              Tahun Akademik <span className="text-[#c8102e]">*</span>
             </label>
             <select
               required

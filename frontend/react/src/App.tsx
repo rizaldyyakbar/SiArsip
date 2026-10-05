@@ -21,6 +21,8 @@ import { UploadModal } from './components/UploadModal';
 import { DocumentDetailModal } from './components/DocumentDetailModal';
 import { DocumentPreviewModal } from './components/DocumentPreviewModal';
 import { AddAcademicYearModal } from './components/AddAcademicYearModal';
+import { LecturersManagement } from './components/LecturersManagement';
+import { CategoriesManagement } from './components/CategoriesManagement';
 import { useSiArsipData } from './hooks/useSiArsipData';
 import type { DocumentItem } from './types';
 
@@ -51,6 +53,8 @@ function App() {
     academicYears,
     criteria,
     auditLogs,
+    lecturers,
+    categories,
     conflictInfo,
     setConflictInfo,
     loadData,
@@ -60,7 +64,14 @@ function App() {
     handlePermanentDeleteDoc,
     handleAddAcademicYear,
     handleToggleAcademicYear,
-    handleDeleteAcademicYear
+    handleDeleteAcademicYear,
+    handleAddLecturer,
+    handleUpdateLecturer,
+    handleToggleLecturer,
+    handleDeleteLecturer,
+    handleAddCategory,
+    handleUpdateCategory,
+    handleDeleteCategory
   } = useSiArsipData();
 
   const showToast = (msg: string) => {
@@ -175,6 +186,43 @@ function App() {
     }
   };
 
+  // Lecturer Handlers
+  const onSaveLecturer = async (data: any) => {
+    await handleAddLecturer(data);
+    showToast(`Dosen "${data.name}" berhasil ditambahkan!`);
+  };
+
+  const onEditLecturer = async (id: number, data: any) => {
+    await handleUpdateLecturer(id, data);
+    showToast(`Data dosen "${data.name}" berhasil diperbarui!`);
+  };
+
+  const onToggleLecturerStatus = async (id: number) => {
+    await handleToggleLecturer(id);
+    showToast('Status keaktifan dosen berhasil diperbarui!');
+  };
+
+  const onDeleteLecturerRecord = async (id: number) => {
+    await handleDeleteLecturer(id);
+    showToast('Data dosen berhasil dihapus.');
+  };
+
+  // Category Handlers
+  const onSaveCategory = async (data: any) => {
+    await handleAddCategory(data);
+    showToast(`Kategori "${data.name}" berhasil ditambahkan!`);
+  };
+
+  const onEditCategory = async (id: number, data: any) => {
+    await handleUpdateCategory(id, data);
+    showToast(`Kategori "${data.name}" berhasil diperbarui!`);
+  };
+
+  const onDeleteCategoryRecord = async (id: number) => {
+    await handleDeleteCategory(id);
+    showToast('Kategori berhasil dihapus.');
+  };
+
   return (
     <div className="min-h-screen bg-[#fff8f8] text-[#111c2d] flex flex-col font-sans">
       {/* Toast Notification */}
@@ -207,6 +255,11 @@ function App() {
           onRefresh={loadData}
           auditLogs={auditLogs}
           conflictInfo={conflictInfo}
+          documents={documents}
+          onSelectDocument={(doc) => setSelectedDocument(doc)}
+          onPreviewDocument={(doc) => setPreviewDocument(doc)}
+          onViewAllResults={() => setCurrentTab('daftar-arsip')}
+          disableSearchPopup={currentTab === 'daftar-arsip'}
         />
 
         {/* Main Content Body */}
@@ -231,7 +284,7 @@ function App() {
                     Dashboard Pengarsipan Digital
                   </h1>
                   <p className="mt-1 text-xs text-slate-500 sm:text-sm">
-                    Pantauan metrik arsip, kuota penyimpanan, dan aktivitas dokumen Prodi Rekayasa Perangkat Lunak
+                    Pantauan metrik arsip, kuota penyimpanan, dan aktivitas dokumen
                   </p>
                 </div>
 
@@ -357,16 +410,15 @@ function App() {
                       <span className="text-xs font-bold text-slate-700 mr-1 flex items-center gap-1">
                         <Filter className="h-3.5 w-3.5 text-[#00236f]" /> Kategori:
                       </span>
-                      {['Semua', 'Tugas Akhir', 'Laporan PKL', 'Kurikulum & RPS', 'Akreditasi', 'SK & Surat'].map(
+                      {['Semua', ...(categories.length > 0 ? categories.map((c) => c.name) : ['Tugas Akhir', 'Laporan PKL', 'Kurikulum & RPS', 'Akreditasi', 'SK & Surat'])].map(
                         (cat) => (
                           <button
                             key={cat}
                             onClick={() => setCategoryFilter(cat)}
-                            className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
-                              categoryFilter === cat
-                                ? 'bg-[#c8102e] text-white shadow-xs'
-                                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                            }`}
+                            className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${categoryFilter === cat
+                              ? 'bg-[#c8102e] text-white shadow-xs'
+                              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                              }`}
                           >
                             {cat}
                           </button>
@@ -396,7 +448,7 @@ function App() {
                     onViewDocument={(doc) => setSelectedDocument(doc)}
                     onPreviewDocument={(doc) => setPreviewDocument(doc)}
                     onDeleteDocument={handleSoftDelete}
-                    onViewAll={() => {}}
+                    onViewAll={() => { }}
                   />
                 </div>
               )}
@@ -419,11 +471,10 @@ function App() {
                         <button
                           key={action}
                           onClick={() => setAuditActionFilter(action)}
-                          className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${
-                            auditActionFilter === action
-                              ? 'bg-[#00236f] text-white'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                          }`}
+                          className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${auditActionFilter === action
+                            ? 'bg-[#00236f] text-white'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            }`}
                         >
                           {action}
                         </button>
@@ -432,7 +483,7 @@ function App() {
                   </div>
 
                   <div className="max-w-3xl">
-                    <AuditActivityPanel logs={filteredAuditLogs} onOpenAuditTrail={() => {}} />
+                    <AuditActivityPanel logs={filteredAuditLogs} onOpenAuditTrail={() => { }} />
                   </div>
                 </div>
               )}
@@ -535,7 +586,7 @@ function App() {
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        Berkas dapat dipulihkan kembali ke repositori aktif atau dihapus secara permanen dari server.
+                        Berkas dapat dipulihkan kembali atau dihapus secara permanen.
                       </p>
                     </div>
                   </div>
@@ -615,8 +666,33 @@ function App() {
                 </div>
               )}
 
+              {/* TAB: DOSEN */}
+              {currentTab === 'dosen' && (
+                <div className="mt-6">
+                  <LecturersManagement
+                    lecturers={lecturers}
+                    onAddLecturer={onSaveLecturer}
+                    onUpdateLecturer={onEditLecturer}
+                    onToggleStatus={onToggleLecturerStatus}
+                    onDeleteLecturer={onDeleteLecturerRecord}
+                  />
+                </div>
+              )}
+
+              {/* TAB: KATEGORI & TAG */}
+              {currentTab === 'kategori-tag' && (
+                <div className="mt-6">
+                  <CategoriesManagement
+                    categories={categories}
+                    onAddCategory={onSaveCategory}
+                    onUpdateCategory={onEditCategory}
+                    onDeleteCategory={onDeleteCategoryRecord}
+                  />
+                </div>
+              )}
+
               {/* OTHER COMING SOON TABS */}
-              {!['daftar-arsip', 'audit-log', 'tahun-akademik', 'tempat-sampah'].includes(currentTab) && (
+              {!['daftar-arsip', 'audit-log', 'tahun-akademik', 'tempat-sampah', 'dosen', 'kategori-tag'].includes(currentTab) && (
                 <div className="py-16 text-center">
                   <FolderArchive className="mx-auto h-12 w-12 text-slate-300" />
                   <p className="mt-3 text-sm font-semibold text-slate-600 capitalize">
@@ -650,6 +726,8 @@ function App() {
         onUpload={handleUpload}
         academicYears={academicYears}
         criteria={criteria}
+        categories={categories}
+        lecturers={lecturers}
       />
 
       <DocumentDetailModal

@@ -6,6 +6,15 @@ import {
   fetchAcademicYears,
   fetchCriteria,
   fetchAuditLogs,
+  fetchLecturers,
+  createLecturer,
+  updateLecturer,
+  toggleLecturerStatus,
+  deleteLecturer,
+  fetchCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
   uploadDocument,
   softDeleteDocument,
   restoreDocument,
@@ -20,13 +29,17 @@ import {
   mockDocuments,
   mockAcademicYears,
   mockLamInfokomCriteria,
-  mockAuditLogs
+  mockAuditLogs,
+  mockLecturers,
+  mockCategoryItems
 } from '../mockData';
 import type {
   DocumentItem,
   AcademicYearMaster,
   LamInfokomCriterion,
-  AuditLogItem
+  AuditLogItem,
+  Lecturer,
+  CategoryItem
 } from '../types';
 
 export interface ConflictInfo {
@@ -43,6 +56,8 @@ export function useSiArsipData() {
   const [academicYears, setAcademicYears] = useState<AcademicYearMaster[]>([]);
   const [criteria, setCriteria] = useState<LamInfokomCriterion[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
+  const [lecturers, setLecturers] = useState<Lecturer[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [conflictInfo, setConflictInfo] = useState<ConflictInfo | null>(null);
 
   // Muat data dari backend jika online, fallback ke mockData jika offline
@@ -53,12 +68,14 @@ export function useSiArsipData() {
 
     if (online) {
       try {
-        const [docsRes, trashRes, ayRes, critRes, auditRes] = await Promise.allSettled([
+        const [docsRes, trashRes, ayRes, critRes, auditRes, lectRes, catRes] = await Promise.allSettled([
           fetchDocuments(),
           fetchTrashDocuments(),
           fetchAcademicYears(),
           fetchCriteria(),
-          fetchAuditLogs()
+          fetchAuditLogs(),
+          fetchLecturers(),
+          fetchCategories()
         ]);
 
         if (docsRes.status === 'fulfilled') {
@@ -76,6 +93,12 @@ export function useSiArsipData() {
         if (auditRes.status === 'fulfilled') {
           setAuditLogs(auditRes.value);
         }
+        if (lectRes.status === 'fulfilled') {
+          setLecturers(lectRes.value);
+        }
+        if (catRes.status === 'fulfilled') {
+          setCategories(catRes.value);
+        }
       } catch (err) {
         console.warn('Gagal memuat sebagian data live backend:', err);
       }
@@ -85,6 +108,8 @@ export function useSiArsipData() {
       setAcademicYears(mockAcademicYears);
       setCriteria(mockLamInfokomCriteria);
       setAuditLogs(mockAuditLogs);
+      setLecturers(mockLecturers);
+      setCategories(mockCategoryItems);
     }
     setIsLoading(false);
   }, []);
@@ -235,6 +260,139 @@ export function useSiArsipData() {
     }
   };
 
+  // Handler Dosen
+  const handleAddLecturer = async (data: {
+    nip: string;
+    name: string;
+    email: string;
+    phone: string;
+    position: string;
+  }) => {
+    if (isBackendOnline) {
+      await createLecturer(data);
+      const fresh = await fetchLecturers();
+      setLecturers(fresh);
+    } else {
+      const newL: Lecturer = {
+        id: Date.now(),
+        ...data,
+        isActive: true,
+        documentCount: 0
+      };
+      setLecturers((prev) => [newL, ...prev]);
+    }
+  };
+
+  const handleUpdateLecturer = async (
+    id: number,
+    data: {
+      nip: string;
+      name: string;
+      email: string;
+      phone: string;
+      position: string;
+    }
+  ) => {
+    if (isBackendOnline) {
+      await updateLecturer(id, data);
+      const fresh = await fetchLecturers();
+      setLecturers(fresh);
+    } else {
+      setLecturers((prev) =>
+        prev.map((l) => (l.id === id ? { ...l, ...data } : l))
+      );
+    }
+  };
+
+  const handleToggleLecturer = async (id: number) => {
+    if (isBackendOnline) {
+      await toggleLecturerStatus(id);
+      const fresh = await fetchLecturers();
+      setLecturers(fresh);
+    } else {
+      setLecturers((prev) =>
+        prev.map((l) => (l.id === id ? { ...l, isActive: !l.isActive } : l))
+      );
+    }
+  };
+
+  const handleDeleteLecturer = async (id: number) => {
+    if (isBackendOnline) {
+      try {
+        await deleteLecturer(id);
+        const fresh = await fetchLecturers();
+        setLecturers(fresh);
+      } catch (err) {
+        if (err instanceof ApiError) {
+          throw new Error(err.message);
+        }
+        throw err;
+      }
+    } else {
+      setLecturers((prev) => prev.filter((l) => l.id !== id));
+    }
+  };
+
+  // Handler Kategori
+  const handleAddCategory = async (data: {
+    name: string;
+    code: string;
+    description: string;
+    colorBg: string;
+    colorText: string;
+  }) => {
+    if (isBackendOnline) {
+      await createCategory(data);
+      const fresh = await fetchCategories();
+      setCategories(fresh);
+    } else {
+      const newC: CategoryItem = {
+        id: Date.now(),
+        ...data,
+        documentCount: 0
+      };
+      setCategories((prev) => [...prev, newC]);
+    }
+  };
+
+  const handleUpdateCategory = async (
+    id: number,
+    data: {
+      name: string;
+      code: string;
+      description: string;
+      colorBg: string;
+      colorText: string;
+    }
+  ) => {
+    if (isBackendOnline) {
+      await updateCategory(id, data);
+      const fresh = await fetchCategories();
+      setCategories(fresh);
+    } else {
+      setCategories((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, ...data } : c))
+      );
+    }
+  };
+
+  const handleDeleteCategory = async (id: number) => {
+    if (isBackendOnline) {
+      try {
+        await deleteCategory(id);
+        const fresh = await fetchCategories();
+        setCategories(fresh);
+      } catch (err) {
+        if (err instanceof ApiError) {
+          throw new Error(err.message);
+        }
+        throw err;
+      }
+    } else {
+      setCategories((prev) => prev.filter((c) => c.id !== id));
+    }
+  };
+
   return {
     isBackendOnline,
     isLoading,
@@ -243,6 +401,8 @@ export function useSiArsipData() {
     academicYears,
     criteria,
     auditLogs,
+    lecturers,
+    categories,
     conflictInfo,
     setConflictInfo,
     loadData,
@@ -252,6 +412,13 @@ export function useSiArsipData() {
     handlePermanentDeleteDoc,
     handleAddAcademicYear,
     handleToggleAcademicYear,
-    handleDeleteAcademicYear
+    handleDeleteAcademicYear,
+    handleAddLecturer,
+    handleUpdateLecturer,
+    handleToggleLecturer,
+    handleDeleteLecturer,
+    handleAddCategory,
+    handleUpdateCategory,
+    handleDeleteCategory
   };
 }

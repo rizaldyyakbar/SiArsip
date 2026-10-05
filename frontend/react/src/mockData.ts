@@ -4,7 +4,9 @@ import type {
   CategoryDistribution,
   MonthlyTrend,
   AcademicYearMaster,
-  LamInfokomCriterion
+  LamInfokomCriterion,
+  Lecturer,
+  CategoryItem
 } from './types';
 
 export const mockAcademicYears: AcademicYearMaster[] = [
@@ -214,3 +216,105 @@ export const mockAuditLogs: AuditLogItem[] = [
     accentColor: '#004a32'
   }
 ];
+
+export const mockLecturers: Lecturer[] = [
+  {
+    id: 1,
+    nip: '198503152010121002',
+    name: 'Dr. Eng. Ratna Indah, S.Kom., M.T.',
+    email: 'ratna.indah@kampus.ac.id',
+    phone: '081234567890',
+    position: 'Ketua Program Studi RPL',
+    isActive: true,
+    documentCount: 2
+  },
+  {
+    id: 2,
+    nip: '198207122008121001',
+    name: 'Ahmad Fauzi, S.T., M.Kom.',
+    email: 'ahmad.fauzi@kampus.ac.id',
+    phone: '081234567891',
+    position: 'Sekretaris Prodi & Dosen Tetap',
+    isActive: true,
+    documentCount: 0
+  },
+  {
+    id: 3,
+    nip: '199001082019032015',
+    name: 'Siti Aminah, M.Cs.',
+    email: 'siti.aminah@kampus.ac.id',
+    phone: '081234567892',
+    position: 'Koordinator Tugas Akhir',
+    isActive: true,
+    documentCount: 0
+  },
+  {
+    id: 4,
+    nip: '197904202005011003',
+    name: 'Budi Santoso, S.Kom., M.Kom.',
+    email: 'budi.santoso@kampus.ac.id',
+    phone: '081234567893',
+    position: 'Koordinator Kurikulum & Mutu',
+    isActive: true,
+    documentCount: 0
+  },
+  {
+    id: 5,
+    nip: '198811252015041002',
+    name: 'Hendra Wijaya, Ph.D.',
+    email: 'hendra.wijaya@kampus.ac.id',
+    phone: '081234567894',
+    position: 'Koordinator PKL & Kerjasama',
+    isActive: true,
+    documentCount: 0
+  }
+];
+
+export const mockCategoryItems: CategoryItem[] = [
+  {
+    id: 1,
+    name: 'Tugas Akhir',
+    code: 'TA',
+    description: 'Berkas skripsi, proposal, berita acara, dan pengujian mahasiswa',
+    colorBg: '#fff0f2',
+    colorText: '#ba1a1a',
+    documentCount: 1
+  },
+  {
+    id: 2,
+    name: 'Laporan PKL',
+    code: 'PKL',
+    description: 'Laporan praktik kerja lapangan dan magang industri mahasiswa',
+    colorBg: '#f0f3ff',
+    colorText: '#00236f',
+    documentCount: 0
+  },
+  {
+    id: 3,
+    name: 'Kurikulum & RPS',
+    code: 'RPS',
+    description: 'Rencana pembelajaran semester, silabus, dan matriks kurikulum OBE',
+    colorBg: '#e7f9ef',
+    colorText: '#056434',
+    documentCount: 2
+  },
+  {
+    id: 4,
+    name: 'Akreditasi',
+    code: 'AKR',
+    description: 'Borang akreditasi, instrumen evaluasi diri, dan bukti LAM INFOKOM',
+    colorBg: '#fff8e1',
+    colorText: '#b25e00',
+    documentCount: 0
+  },
+  {
+    id: 5,
+    name: 'SK & Surat',
+    code: 'SK',
+    description: 'Surat keputusan dekan/kaprodi, surat tugas dosen, dan persuratan resmi',
+    colorBg: '#f3e8ff',
+    colorText: '#6b21a8',
+    documentCount: 0
+  }
+];
+

@@ -47,6 +47,8 @@ func main() {
 	handlers.NewAcademicYearHandler(connection).RegisterRoutes(mux)
 	handlers.NewCriteriaHandler(connection).RegisterRoutes(mux)
 	handlers.NewAuditHandler(connection).RegisterRoutes(mux)
+	handlers.NewLecturerHandler(connection).RegisterRoutes(mux)
+	handlers.NewCategoryHandler(connection).RegisterRoutes(mux)
 
 	// ── CORS middleware (untuk dev frontend) ──────────────────────────────
 	withCORS := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

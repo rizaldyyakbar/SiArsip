@@ -52,6 +52,51 @@ INSERT INTO lam_infokom_criteria (code, title) VALUES
 ON CONFLICT (code) DO NOTHING;
 
 -- ─────────────────────────────────────────────
+-- MASTER: Dosen (Lecturers)
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS lecturers (
+    id         SERIAL PRIMARY KEY,
+    nip        VARCHAR(30)  NOT NULL UNIQUE,
+    name       VARCHAR(150) NOT NULL,
+    email      VARCHAR(100),
+    phone      VARCHAR(30),
+    position   VARCHAR(100) DEFAULT 'Dosen Tetap RPL',
+    is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO lecturers (nip, name, email, phone, position, is_active) VALUES
+    ('198503152010121002', 'Dr. Eng. Ratna Indah, S.Kom., M.T.', 'ratna.indah@kampus.ac.id', '081234567890', 'Ketua Program Studi RPL', TRUE),
+    ('198207122008121001', 'Ahmad Fauzi, S.T., M.Kom.', 'ahmad.fauzi@kampus.ac.id', '081234567891', 'Sekretaris Prodi & Dosen Tetap', TRUE),
+    ('199001082019032015', 'Siti Aminah, M.Cs.', 'siti.aminah@kampus.ac.id', '081234567892', 'Koordinator Tugas Akhir', TRUE),
+    ('197904202005011003', 'Budi Santoso, S.Kom., M.Kom.', 'budi.santoso@kampus.ac.id', '081234567893', 'Koordinator Kurikulum & Mutu', TRUE),
+    ('198811252015041002', 'Hendra Wijaya, Ph.D.', 'hendra.wijaya@kampus.ac.id', '081234567894', 'Koordinator PKL & Kerjasama', TRUE)
+ON CONFLICT (nip) DO NOTHING;
+
+-- ─────────────────────────────────────────────
+-- MASTER: Kategori Dokumen (Categories)
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS categories (
+    id          SERIAL PRIMARY KEY,
+    name        VARCHAR(100) NOT NULL UNIQUE,
+    code        VARCHAR(20)  NOT NULL UNIQUE,
+    description TEXT,
+    color_bg    VARCHAR(30)  NOT NULL DEFAULT '#fff0f2',
+    color_text  VARCHAR(30)  NOT NULL DEFAULT '#ba1a1a',
+    created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO categories (name, code, description, color_bg, color_text) VALUES
+    ('Tugas Akhir', 'TA', 'Berkas skripsi, proposal, berita acara, dan pengujian mahasiswa', '#fff0f2', '#ba1a1a'),
+    ('Laporan PKL', 'PKL', 'Laporan praktik kerja lapangan dan magang industri mahasiswa', '#f0f3ff', '#00236f'),
+    ('Kurikulum & RPS', 'RPS', 'Rencana pembelajaran semester, silabus, dan matriks kurikulum OBE', '#e7f9ef', '#056434'),
+    ('Akreditasi', 'AKR', 'Borang akreditasi, instrumen evaluasi diri, dan bukti LAM INFOKOM', '#fff8e1', '#b25e00'),
+    ('SK & Surat', 'SK', 'Surat keputusan dekan/kaprodi, surat tugas dosen, dan persuratan resmi', '#f3e8ff', '#6b21a8')
+ON CONFLICT (name) DO NOTHING;
+
+-- ─────────────────────────────────────────────
 -- UTAMA: Dokumen (Tabel & Alter Kolom Baru)
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS documents (
