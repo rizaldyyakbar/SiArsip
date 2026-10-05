@@ -3,12 +3,12 @@ package db
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Migrate menjalankan DDL untuk membuat seluruh tabel yang dibutuhkan
 // (idempotent — aman dijalankan berkali-kali).
-func Migrate(ctx context.Context, conn *pgx.Conn) error {
+func Migrate(ctx context.Context, conn *pgxpool.Pool) error {
 	ddl := `
 -- ─────────────────────────────────────────────
 -- MASTER: Tahun Akademik

@@ -4,15 +4,15 @@ import (
 	"net/http"
 
 	"github.com/arsip-prodi/siarsip/backend/models"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // CriteriaHandler menangani daftar kriteria LAM INFOKOM Instrumen 2.1.
 type CriteriaHandler struct {
-	connection *pgx.Conn
+	connection *pgxpool.Pool
 }
 
-func NewCriteriaHandler(conn *pgx.Conn) *CriteriaHandler {
+func NewCriteriaHandler(conn *pgxpool.Pool) *CriteriaHandler {
 	return &CriteriaHandler{connection: conn}
 }
 

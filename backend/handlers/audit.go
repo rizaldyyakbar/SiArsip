@@ -8,15 +8,15 @@ import (
 	"strings"
 
 	"github.com/arsip-prodi/siarsip/backend/models"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // AuditHandler menangani pembacaan dan penulisan audit log.
 type AuditHandler struct {
-	connection *pgx.Conn
+	connection *pgxpool.Pool
 }
 
-func NewAuditHandler(conn *pgx.Conn) *AuditHandler {
+func NewAuditHandler(conn *pgxpool.Pool) *AuditHandler {
 	return &AuditHandler{connection: conn}
 }
 
@@ -81,7 +81,7 @@ func (h *AuditHandler) list(w http.ResponseWriter, r *http.Request) {
 }
 
 // writeAuditLog adalah helper yang dipakai handler lain untuk mencatat aksi.
-func writeAuditLog(ctx context.Context, conn *pgx.Conn, action, entityType string, entityID *int64, detail, actorNIP, remoteAddr string) {
+func writeAuditLog(ctx context.Context, conn *pgxpool.Pool, action, entityType string, entityID *int64, detail, actorNIP, remoteAddr string) {
 	ip := remoteAddr
 	if host, _, err := net.SplitHostPort(remoteAddr); err == nil {
 		ip = host

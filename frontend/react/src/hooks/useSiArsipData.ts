@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   checkApiHealth,
   fetchDocuments,
+  fetchTrashDocuments,
   fetchAcademicYears,
   fetchCriteria,
   fetchAuditLogs,
@@ -37,10 +38,11 @@ export interface ConflictInfo {
 export function useSiArsipData() {
   const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [documents, setDocuments] = useState<DocumentItem[]>(mockDocuments);
-  const [academicYears, setAcademicYears] = useState<AcademicYearMaster[]>(mockAcademicYears);
-  const [criteria, setCriteria] = useState<LamInfokomCriterion[]>(mockLamInfokomCriteria);
-  const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>(mockAuditLogs);
+  const [documents, setDocuments] = useState<DocumentItem[]>([]);
+  const [trashDocuments, setTrashDocuments] = useState<DocumentItem[]>([]);
+  const [academicYears, setAcademicYears] = useState<AcademicYearMaster[]>([]);
+  const [criteria, setCriteria] = useState<LamInfokomCriterion[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
   const [conflictInfo, setConflictInfo] = useState<ConflictInfo | null>(null);
 
   // Muat data dari backend jika online, fallback ke mockData jika offline
@@ -51,28 +53,38 @@ export function useSiArsipData() {
 
     if (online) {
       try {
-        const [docsRes, ayRes, critRes, auditRes] = await Promise.allSettled([
+        const [docsRes, trashRes, ayRes, critRes, auditRes] = await Promise.allSettled([
           fetchDocuments(),
+          fetchTrashDocuments(),
           fetchAcademicYears(),
           fetchCriteria(),
           fetchAuditLogs()
         ]);
 
-        if (docsRes.status === 'fulfilled' && docsRes.value.length > 0) {
+        if (docsRes.status === 'fulfilled') {
           setDocuments(docsRes.value);
         }
-        if (ayRes.status === 'fulfilled' && ayRes.value.length > 0) {
+        if (trashRes.status === 'fulfilled') {
+          setTrashDocuments(trashRes.value);
+        }
+        if (ayRes.status === 'fulfilled') {
           setAcademicYears(ayRes.value.map(mapBackendAYToMaster));
         }
-        if (critRes.status === 'fulfilled' && critRes.value.length > 0) {
+        if (critRes.status === 'fulfilled') {
           setCriteria(critRes.value);
         }
-        if (auditRes.status === 'fulfilled' && auditRes.value.length > 0) {
+        if (auditRes.status === 'fulfilled') {
           setAuditLogs(auditRes.value);
         }
       } catch (err) {
         console.warn('Gagal memuat sebagian data live backend:', err);
       }
+    } else {
+      // Fallback ke mock data hanya bila backend offline
+      setDocuments(mockDocuments);
+      setAcademicYears(mockAcademicYears);
+      setCriteria(mockLamInfokomCriteria);
+      setAuditLogs(mockAuditLogs);
     }
     setIsLoading(false);
   }, []);
@@ -227,6 +239,7 @@ export function useSiArsipData() {
     isBackendOnline,
     isLoading,
     documents,
+    trashDocuments,
     academicYears,
     criteria,
     auditLogs,

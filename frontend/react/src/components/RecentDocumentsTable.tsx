@@ -8,19 +8,24 @@ import {
   ChevronLeft,
   ChevronRight,
   FileCode,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 import type { DocumentItem } from '../types';
 
 interface RecentDocumentsTableProps {
   documents: DocumentItem[];
   onViewDocument: (doc: DocumentItem) => void;
+  onPreviewDocument?: (doc: DocumentItem) => void;
+  onDeleteDocument?: (doc: DocumentItem) => void;
   onViewAll: () => void;
 }
 
 export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
   documents,
   onViewDocument,
+  onPreviewDocument,
+  onDeleteDocument,
   onViewAll
 }) => {
   return (
@@ -60,15 +65,24 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
-              {documents.map((doc) => {
-                const isDraft = doc.status === 'Draft';
-                return (
-                  <tr
-                    key={doc.id}
-                    className={`transition-colors ${
-                      isDraft ? 'bg-[#f0f3ff]/40 hover:bg-[#e7eeff]/60' : 'hover:bg-slate-50/80'
-                    }`}
-                  >
+              {documents.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    <FileText className="mx-auto h-8 w-8 text-slate-300 mb-2" />
+                    <p className="font-semibold text-slate-600">Tidak ada dokumen ditemukan</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Belum ada berkas tersimpan atau coba sesuaikan kata kunci pencarian.</p>
+                  </td>
+                </tr>
+              ) : (
+                documents.map((doc) => {
+                  const isDraft = doc.status === 'Draft';
+                  return (
+                    <tr
+                      key={doc.id}
+                      className={`transition-colors ${
+                        isDraft ? 'bg-[#f0f3ff]/40 hover:bg-[#e7eeff]/60' : 'hover:bg-slate-50/80'
+                      }`}
+                    >
                     {/* Filename & Hash */}
                     <td className="py-3.5 pl-4 pr-3">
                       <div className="flex items-start gap-3">
@@ -168,16 +182,23 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
                       ) : (
                         <div className="flex items-center justify-end gap-1">
                           <button
-                            onClick={() => onViewDocument(doc)}
-                            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                            onClick={() => {
+                              if (onPreviewDocument) {
+                                onPreviewDocument(doc);
+                              } else {
+                                onViewDocument(doc);
+                              }
+                            }}
+                            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"
                             title="Pratinjau Dokumen"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => {
-                              if (doc.previewUrl) {
-                                window.open(doc.previewUrl, '_blank');
+                              const targetUrl = doc.downloadUrl || doc.previewUrl;
+                              if (targetUrl) {
+                                window.open(targetUrl, '_blank');
                               } else {
                                 onViewDocument(doc);
                               }
@@ -187,12 +208,21 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
                           >
                             <Download className="h-4 w-4" />
                           </button>
+                          {onDeleteDocument && (
+                            <button
+                              onClick={() => onDeleteDocument(doc)}
+                              className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-[#ba1a1a] transition-colors"
+                              title="Pindahkan ke Tempat Sampah"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
                         </div>
                       )}
                     </td>
                   </tr>
                 );
-              })}
+              }))}
             </tbody>
           </table>
         </div>
@@ -201,7 +231,7 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
       {/* Pagination Footer Card */}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#f0f3ff] px-4 py-3 text-xs">
         <span className="text-slate-500">
-          Menampilkan <span className="font-semibold text-slate-800">5 berkas</span> dari <span className="font-semibold text-slate-800">3.482 entri</span> repositori
+          Menampilkan <span className="font-semibold text-slate-800">{documents.length} berkas</span> dari <span className="font-semibold text-slate-800">{documents.length} entri</span> repositori
         </span>
 
         <div className="flex items-center gap-2">
@@ -209,9 +239,9 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
             <ChevronLeft className="h-4 w-4" />
           </button>
           <span className="font-mono text-xs font-semibold text-[#111c2d]">
-            Hal 1 dari 697
+            Hal 1 dari 1
           </span>
-          <button className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">
+          <button className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 disabled:opacity-50" disabled>
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>

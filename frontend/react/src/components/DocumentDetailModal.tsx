@@ -1,17 +1,19 @@
 import React from 'react';
-import { X, FileText, ShieldCheck, Calendar, User, Tag, HardDrive, Hash } from 'lucide-react';
+import { X, FileText, ShieldCheck, Calendar, User, Tag, HardDrive, Hash, Trash2 } from 'lucide-react';
 import type { DocumentItem } from '../types';
 
 interface DocumentDetailModalProps {
   document: DocumentItem | null;
   onClose: () => void;
   onPreview: (document: DocumentItem) => void;
+  onDelete?: (document: DocumentItem) => void;
 }
 
 export const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
   document,
   onClose,
-  onPreview
+  onPreview,
+  onDelete
 }) => {
   if (!document) return null;
 
@@ -148,25 +150,40 @@ export const DocumentDetailModal: React.FC<DocumentDetailModalProps> = ({
               </span>
             </div>
             <p className="mt-2 font-mono text-[11px] text-slate-700 break-all bg-white p-2 rounded-lg border border-slate-200">
-              {document.shaHash ? `sha256:${document.shaHash}a7c09e32049e8bc114d` : 'sha256:e8f2b79c31405a81e9f12d8a5431cd6e'}
+              {document.fullShaHash ? `sha256:${document.fullShaHash}` : (document.shaHash ? `sha256:${document.shaHash}` : 'sha256:verified')}
             </p>
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-end gap-2 border-t border-slate-100 pt-4 text-xs font-semibold">
-          <button
-            onClick={onClose}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-slate-700 hover:bg-slate-50"
-          >
-            Tutup
-          </button>
-          <button
-            onClick={() => onPreview(document)}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#c8102e] px-5 py-2.5 text-white shadow-xs hover:bg-[#9e1025]"
-          >
-            <FileText className="h-4 w-4" />
-            <span>Preview Dokumen</span>
-          </button>
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4 text-xs font-semibold">
+          {onDelete ? (
+            <button
+              onClick={() => {
+                onDelete(document);
+                onClose();
+              }}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-[#ba1a1a] hover:bg-red-100 transition-colors"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>Pindahkan ke Sampah</span>
+            </button>
+          ) : <div />}
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onClose}
+              className="rounded-xl border border-slate-200 px-4 py-2.5 text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              Tutup
+            </button>
+            <button
+              onClick={() => onPreview(document)}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#c8102e] px-5 py-2.5 text-white shadow-xs hover:bg-[#9e1025] transition-all"
+            >
+              <FileText className="h-4 w-4" />
+              <span>Preview Dokumen</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

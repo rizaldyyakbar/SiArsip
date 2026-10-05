@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   FileSpreadsheet,
   Plus,
@@ -6,7 +6,9 @@ import {
   FolderArchive,
   Check,
   Trash2,
-  Filter
+  Filter,
+  RotateCcw,
+  FileText
 } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
@@ -28,7 +30,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modals & UI states
-  const [isConflictAlertVisible, setIsConflictAlertVisible] = useState(true);
+  const [isConflictAlertVisible, setIsConflictAlertVisible] = useState(false);
   const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isAddAYModalOpen, setIsAddAYModalOpen] = useState(false);
@@ -45,6 +47,7 @@ function App() {
   const {
     isBackendOnline,
     documents,
+    trashDocuments,
     academicYears,
     criteria,
     auditLogs,
@@ -52,6 +55,9 @@ function App() {
     setConflictInfo,
     loadData,
     handleUpload,
+    handleDeleteDoc,
+    handleRestoreDoc,
+    handlePermanentDeleteDoc,
     handleAddAcademicYear,
     handleToggleAcademicYear,
     handleDeleteAcademicYear
@@ -98,6 +104,12 @@ function App() {
     return auditLogs.filter((log) => log.badge?.label === auditActionFilter);
   }, [auditLogs, auditActionFilter]);
 
+  useEffect(() => {
+    if (conflictInfo) {
+      setIsConflictAlertVisible(true);
+    }
+  }, [conflictInfo]);
+
   const handleResolveConflict = (action: string) => {
     setIsConflictModalOpen(false);
     setConflictInfo(null);
@@ -107,6 +119,40 @@ function App() {
 
   const handleUploadSuccess = (newDoc: DocumentItem) => {
     showToast(`Dokumen "${newDoc.filename}" berhasil diunggah & terindeks!`);
+  };
+
+  const handleSoftDelete = async (doc: DocumentItem) => {
+    if (!window.confirm(`Pindahkan berkas "${doc.filename}" ke tempat sampah?`)) return;
+    const ok = await handleDeleteDoc(doc.id);
+    if (ok) {
+      showToast(`Berkas "${doc.filename}" dipindahkan ke Tempat Sampah.`);
+    } else {
+      alert('Gagal memindahkan berkas ke tempat sampah.');
+    }
+  };
+
+  const handleRestore = async (doc: DocumentItem) => {
+    const ok = await handleRestoreDoc(doc.id);
+    if (ok) {
+      showToast(`Berkas "${doc.filename}" berhasil dipulihkan!`);
+    } else {
+      alert('Gagal memulihkan berkas.');
+    }
+  };
+
+  const handlePermanentDelete = async (doc: DocumentItem) => {
+    if (
+      !window.confirm(
+        `HAPUS PERMANEN berkas "${doc.filename}"?\n\nTindakan ini tidak dapat dibatalkan dan berkas fisik akan dihapus dari server.`
+      )
+    )
+      return;
+    const ok = await handlePermanentDeleteDoc(doc.id);
+    if (ok) {
+      showToast(`Berkas "${doc.filename}" telah dihapus permanen.`);
+    } else {
+      alert('Gagal menghapus berkas permanen.');
+    }
   };
 
   const handleSaveAcademicYear = async (year: string, semester: 'Ganjil' | 'Genap') => {
@@ -146,6 +192,7 @@ function App() {
         isOpenMobile={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}
         onOpenUpload={() => setIsUploadModalOpen(true)}
+        documents={documents}
       />
 
       {/* Main Layout Area */}
@@ -158,6 +205,8 @@ function App() {
           onSearchChange={setSearchQuery}
           isBackendOnline={isBackendOnline}
           onRefresh={loadData}
+          auditLogs={auditLogs}
+          conflictInfo={conflictInfo}
         />
 
         {/* Main Content Body */}
@@ -206,9 +255,9 @@ function App() {
                 </div>
               </div>
 
-              {/* Alert Duplikasi SHA-256 (Peringatan Sistem) */}
-              {isConflictAlertVisible && (
-                <div className="flex flex-col gap-4 rounded-2xl border border-red-200/80 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+              {/* Alert Duplikasi SHA-256 (Peringatan Sistem Real) */}
+              {(isConflictAlertVisible && conflictInfo) && (
+                <div className="flex flex-col gap-4 rounded-2xl border border-red-200/80 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between animate-in fade-in duration-200">
                   <div className="flex items-start gap-3.5">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#ffdad6] text-[#93000a]">
                       <AlertTriangle className="h-5 w-5" />
@@ -227,20 +276,23 @@ function App() {
                       <p className="mt-1 text-xs text-slate-600 leading-relaxed">
                         Dokumen{' '}
                         <span className="font-semibold text-[#ba1a1a]">
-                          TA_220401048_Aditya_REV2.pdf
+                          {conflictInfo.newFilename}
                         </span>{' '}
-                        terdeteksi memiliki signature hash SHA-256 identik dengan berkas{' '}
-                        <span className="font-semibold text-[#00236f]">
-                          TA_220401048_Final.pdf
-                        </span>
-                        . Tindakan penggabungan atau penolakan diperlukan.
+                        terdeteksi memiliki signature hash SHA-256 identik{' '}
+                        <span className="font-mono text-[11px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-800">
+                          {conflictInfo.sha256 ? `${conflictInfo.sha256.slice(0, 16)}...` : 'SHA-256'}
+                        </span>{' '}
+                        dengan berkas di repositori. Tindakan penolakan atau perbaikan diperlukan.
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                     <button
-                      onClick={() => setIsConflictAlertVisible(false)}
+                      onClick={() => {
+                        setIsConflictAlertVisible(false);
+                        setConflictInfo(null);
+                      }}
                       className="rounded-xl px-3 py-1.5 text-xs font-semibold text-[#ba1a1a] hover:bg-red-50 transition-colors"
                     >
                       Abaikan
@@ -255,17 +307,19 @@ function App() {
                 </div>
               )}
 
-              {/* 4 Kartu KPI Statistik Utama */}
-              <KPISection />
+              {/* 4 Kartu KPI Statistik Utama (Dynamic from documents) */}
+              <KPISection documents={documents} />
 
-              {/* Baris Visualisasi Data (Grid 2 Kolom) */}
-              <DataVisualizationSection />
+              {/* Baris Visualisasi Data (Grid 2 Kolom - Dynamic from documents) */}
+              <DataVisualizationSection documents={documents} />
 
               {/* Baris Bawah: Grid 2 Kolom (8 Col vs 4 Col) */}
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                 <RecentDocumentsTable
                   documents={filteredDocuments}
                   onViewDocument={(doc) => setSelectedDocument(doc)}
+                  onPreviewDocument={(doc) => setPreviewDocument(doc)}
+                  onDeleteDocument={handleSoftDelete}
                   onViewAll={() => setCurrentTab('daftar-arsip')}
                 />
                 <AuditActivityPanel
@@ -340,6 +394,8 @@ function App() {
                   <RecentDocumentsTable
                     documents={filteredDocuments}
                     onViewDocument={(doc) => setSelectedDocument(doc)}
+                    onPreviewDocument={(doc) => setPreviewDocument(doc)}
+                    onDeleteDocument={handleSoftDelete}
                     onViewAll={() => {}}
                   />
                 </div>
@@ -468,26 +524,94 @@ function App() {
               {/* TAB: TEMPAT SAMPAH */}
               {currentTab === 'tempat-sampah' && (
                 <div className="mt-6 space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
                     <div>
-                      <h2 className="text-sm font-bold text-[#111c2d]">
-                        Berkas di Tempat Sampah (Soft Deleted)
-                      </h2>
-                      <p className="text-xs text-slate-500">
-                        Berkas yang dihapus disimpan sementara di sini sebelum dihapus permanen
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-sm font-bold text-[#111c2d]">
+                          Berkas di Tempat Sampah (Soft Deleted)
+                        </h2>
+                        <span className="rounded-md bg-red-100 px-2 py-0.5 text-[10px] font-bold text-[#ba1a1a]">
+                          {trashDocuments.length} BERKAS
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Berkas dapat dipulihkan kembali ke repositori aktif atau dihapus secara permanen dari server.
                       </p>
                     </div>
                   </div>
 
-                  <div className="py-12 text-center rounded-2xl border border-dashed border-slate-200 bg-[#f9f9ff]">
-                    <Trash2 className="mx-auto h-10 w-10 text-slate-300" />
-                    <p className="mt-3 text-xs font-semibold text-slate-600">
-                      Tempat sampah saat ini kosong
-                    </p>
-                    <p className="mt-1 text-[11px] text-slate-400">
-                      Dokumen yang dipindahkan ke sampah dapat dipulihkan kapan saja.
-                    </p>
-                  </div>
+                  {trashDocuments.length === 0 ? (
+                    <div className="py-16 text-center rounded-2xl border border-dashed border-slate-200 bg-[#f9f9ff]">
+                      <Trash2 className="mx-auto h-10 w-10 text-slate-300" />
+                      <p className="mt-3 text-xs font-semibold text-slate-600">
+                        Tempat sampah saat ini kosong
+                      </p>
+                      <p className="mt-1 text-[11px] text-slate-400">
+                        Tidak ada berkas yang sedang dihapus.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="border-b border-slate-100 bg-[#f0f3ff]/70 text-[11px] font-bold text-[#444651]">
+                            <th className="py-3 pl-4 pr-3">DOKUMEN & IDENTITAS</th>
+                            <th className="px-3 py-3">KATEGORI</th>
+                            <th className="px-3 py-3">TAHUN AKADEMIK</th>
+                            <th className="px-3 py-3">UKURAN</th>
+                            <th className="py-3 pr-4 pl-3 text-right">AKSI</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 font-medium">
+                          {trashDocuments.map((doc) => (
+                            <tr key={doc.id} className="hover:bg-slate-50/80 transition-colors">
+                              <td className="py-3 pl-4 pr-3">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-50 text-[#ba1a1a]">
+                                    <FileText className="h-4 w-4" />
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold text-[#111c2d] line-clamp-1">{doc.filename}</p>
+                                    <p className="font-mono text-[10px] text-slate-400">{doc.archiveNumber} • {doc.responsibleIdentifier}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-3 py-3">
+                                <span
+                                  className="inline-block rounded-md px-2 py-0.5 text-[11px] font-semibold"
+                                  style={{ backgroundColor: doc.categoryTheme?.bg || '#f1f5f9', color: doc.categoryTheme?.text || '#334155' }}
+                                >
+                                  {doc.category}
+                                </span>
+                              </td>
+                              <td className="px-3 py-3 font-mono text-slate-700">{doc.academicYear}</td>
+                              <td className="px-3 py-3 font-mono text-slate-500">{doc.fileSize}</td>
+                              <td className="py-3 pr-4 pl-3 text-right">
+                                <div className="inline-flex items-center gap-2">
+                                  <button
+                                    onClick={() => handleRestore(doc)}
+                                    className="inline-flex items-center gap-1 rounded-lg bg-[#e8f5e9] px-2.5 py-1.5 text-[11px] font-semibold text-[#004a32] hover:bg-emerald-100 transition-colors cursor-pointer"
+                                    title="Pulihkan dokumen ke repositori aktif"
+                                  >
+                                    <RotateCcw className="h-3.5 w-3.5" />
+                                    <span>Pulihkan</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handlePermanentDelete(doc)}
+                                    className="inline-flex items-center gap-1 rounded-lg bg-red-50 px-2.5 py-1.5 text-[11px] font-semibold text-[#ba1a1a] hover:bg-red-100 transition-colors cursor-pointer"
+                                    title="Hapus permanen berkas fisik dari server"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                    <span>Hapus Permanen</span>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -532,6 +656,7 @@ function App() {
         document={selectedDocument}
         onClose={() => setSelectedDocument(null)}
         onPreview={(document) => setPreviewDocument(document)}
+        onDelete={handleSoftDelete}
       />
 
       <DocumentPreviewModal

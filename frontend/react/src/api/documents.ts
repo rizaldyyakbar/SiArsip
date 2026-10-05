@@ -79,13 +79,15 @@ export function mapBackendDocToItem(doc: BackendDocument): DocumentItem {
     documentNumber: doc.document_number,
     documentDate: doc.document_date,
     academicYear: doc.academic_year,
-    previewUrl: `${API_BASE_URL}/documents/${doc.id}/download`,
+    previewUrl: `${API_BASE_URL}/documents/${doc.id}/view`,
+    downloadUrl: `${API_BASE_URL}/documents/${doc.id}/download`,
     accreditationInstrument: doc.accreditation_instrument,
     accreditationCriterion: doc.accreditation_criterion,
     evidenceType: doc.evidence_type,
     filename: doc.file_name || doc.title,
     fileSize: formatBytes(doc.file_size_bytes),
     shaHash: shortSha,
+    fullShaHash: doc.sha256_hash,
     category: doc.category,
     categoryTheme: getCategoryTheme(doc.category),
     responsibleIdentifier: doc.nip ? `NIP: ${doc.nip}` : 'Unit Jurusan RPL',
@@ -161,4 +163,8 @@ export async function restoreDocument(id: number | string): Promise<{ message: s
 
 export function getDocumentDownloadUrl(id: number | string): string {
   return `${API_BASE_URL}/documents/${id}/download`;
+}
+
+export function getDocumentPreviewUrl(id: number | string): string {
+  return `${API_BASE_URL}/documents/${id}/view`;
 }

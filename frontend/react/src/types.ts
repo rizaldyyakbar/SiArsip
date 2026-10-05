@@ -5,12 +5,14 @@ export interface DocumentItem {
   documentDate: string;
   academicYear: string;
   previewUrl?: string;
+  downloadUrl?: string;
   accreditationInstrument?: string;
   accreditationCriterion?: string;
   evidenceType?: string;
   filename: string;
   fileSize: string;
   shaHash: string;
+  fullShaHash?: string;
   category: string;
   categoryTheme: {
     bg: string;

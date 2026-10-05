@@ -10,6 +10,7 @@ import {
   LogOut,
   Settings
 } from 'lucide-react';
+import type { AuditLogItem } from '../types';
 
 interface HeaderProps {
   onToggleMobileMenu: () => void;
@@ -18,6 +19,8 @@ interface HeaderProps {
   onSearchChange: (q: string) => void;
   isBackendOnline?: boolean | null;
   onRefresh?: () => void;
+  auditLogs?: AuditLogItem[];
+  conflictInfo?: any;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -26,7 +29,9 @@ export const Header: React.FC<HeaderProps> = ({
   searchQuery,
   onSearchChange,
   isBackendOnline,
-  onRefresh
+  onRefresh,
+  auditLogs = [],
+  conflictInfo
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -100,39 +105,91 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="hidden sm:inline">Unggah Dokumen</span>
         </button>
 
-        {/* Notifications Button with Badge */}
-        <div className="relative">
-          <button
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
-            aria-label="Pemberitahuan"
-          >
-            <Bell className="h-4.5 w-4.5" />
-            <span className="absolute -top-1 -right-1 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-[#ba1a1a] px-1 text-[10px] font-bold text-white shadow-xs">
-              2
-            </span>
-          </button>
+        {/* Notifications Button with Dynamic Badge */}
+        {(() => {
+          const notifications: { id: string; title: string; desc: string; isAlert: boolean }[] = [];
+          if (conflictInfo) {
+            notifications.push({
+              id: 'conflict',
+              title: 'Peringatan Duplikasi SHA-256',
+              desc: `File "${conflictInfo.newFilename}" memiliki hash yang identik dengan arsip yang ada.`,
+              isAlert: true
+            });
+          }
+          auditLogs.slice(0, 3).forEach((log) => {
+            notifications.push({
+              id: log.id,
+              title: log.title,
+              desc: log.description,
+              isAlert: false
+            });
+          });
 
-          {/* Notifications Dropdown */}
-          {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl z-50">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2 px-1">
-                <span className="text-xs font-bold text-slate-900">Pemberitahuan</span>
-                <span className="text-[11px] text-[#c8102e] font-semibold cursor-pointer">Tandai Dibaca</span>
-              </div>
-              <div className="mt-2 space-y-2 text-xs">
-                <div className="rounded-xl bg-red-50 p-2.5 text-red-900 border border-red-100">
-                  <p className="font-semibold text-xs text-[#93000a]">Peringatan Integritas Arsip</p>
-                  <p className="text-[11px] text-slate-600 mt-0.5">1 file hash duplikat terdeteksi pada TA_220401048.</p>
+          const notifCount = notifications.length;
+
+          return (
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+                aria-label="Pemberitahuan"
+              >
+                <Bell className="h-4.5 w-4.5" />
+                {notifCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-[#ba1a1a] px-1 text-[10px] font-bold text-white shadow-xs">
+                    {notifCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Notifications Dropdown */}
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2 px-1">
+                    <span className="text-xs font-bold text-slate-900">Pemberitahuan</span>
+                    {notifCount > 0 && (
+                      <span
+                        onClick={() => setShowNotifications(false)}
+                        className="text-[11px] text-[#c8102e] font-semibold cursor-pointer hover:underline"
+                      >
+                        Tutup
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-2 space-y-2 text-xs max-h-72 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="py-6 text-center text-slate-400">
+                        <p className="text-xs font-medium">Tidak ada pemberitahuan baru</p>
+                      </div>
+                    ) : (
+                      notifications.map((n) => (
+                        <div
+                          key={n.id}
+                          className={`rounded-xl p-2.5 border ${
+                            n.isAlert
+                              ? 'bg-red-50 text-red-900 border-red-100'
+                              : 'bg-[#f0f3ff] text-[#111c2d] border-[#dee8ff]'
+                          }`}
+                        >
+                          <p
+                            className={`font-semibold text-xs ${
+                              n.isAlert ? 'text-[#93000a]' : 'text-[#00236f]'
+                            }`}
+                          >
+                            {n.title}
+                          </p>
+                          <p className="text-[11px] text-slate-600 mt-0.5 line-clamp-2">
+                            {n.desc}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-                <div className="rounded-xl bg-blue-50 p-2.5 text-blue-900 border border-blue-100">
-                  <p className="font-semibold text-xs text-[#c8102e]">Batch Upload Berhasil</p>
-                  <p className="text-[11px] text-slate-600 mt-0.5">3 berkas Tugas Akhir berhasil diverifikasi ke repositori.</p>
-                </div>
-              </div>
+              )}
             </div>
-          )}
-        </div>
+          );
+        })()}
 
         {/* Vertical Divider */}
         <div className="hidden h-7 w-px bg-slate-200 sm:block" />

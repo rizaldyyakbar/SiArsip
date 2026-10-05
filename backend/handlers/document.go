@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -15,15 +16,16 @@ import (
 	"github.com/arsip-prodi/siarsip/backend/models"
 	"github.com/arsip-prodi/siarsip/backend/storage"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // DocumentHandler menangani semua request terkait dokumen arsip.
 type DocumentHandler struct {
-	connection *pgx.Conn
+	connection *pgxpool.Pool
 	storage    storage.Local
 }
 
-func NewDocumentHandler(connection *pgx.Conn, fileStorage storage.Local) *DocumentHandler {
+func NewDocumentHandler(connection *pgxpool.Pool, fileStorage storage.Local) *DocumentHandler {
 	return &DocumentHandler{connection: connection, storage: fileStorage}
 }
 
@@ -33,6 +35,8 @@ func (h *DocumentHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /documents/trash",             h.trash)
 	mux.HandleFunc("GET /documents/{id}",              h.detail)
 	mux.HandleFunc("GET /documents/{id}/download",     h.download)
+	mux.HandleFunc("GET /documents/{id}/view",         h.view)
+	mux.HandleFunc("GET /documents/{id}/preview",      h.view)
 	mux.HandleFunc("PATCH /documents/{id}",            h.update)
 	mux.HandleFunc("DELETE /documents/{id}",           h.softDelete)
 	mux.HandleFunc("DELETE /documents/{id}/permanent", h.permanentDelete)
@@ -81,7 +85,7 @@ func (h *DocumentHandler) list(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := h.connection.Query(r.Context(), sqlQuery, args...)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "Gagal mengambil data dokumen")
+		writeError(w, http.StatusInternalServerError, "Gagal mengambil data dokumen: "+err.Error())
 		return
 	}
 	defer rows.Close()
@@ -387,9 +391,36 @@ func (h *DocumentHandler) trash(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, docs)
 }
 
-// ─── DOWNLOAD ────────────────────────────────────────────────────────────────
+// ─── SERVE FILE (VIEW OR DOWNLOAD) ──────────────────────────────────────────
 
-func (h *DocumentHandler) download(w http.ResponseWriter, r *http.Request) {
+func getMimeType(fileName string, storedMime string) string {
+	if storedMime != "" && storedMime != "application/octet-stream" {
+		return storedMime
+	}
+	ext := strings.ToLower(filepath.Ext(fileName))
+	switch ext {
+	case ".pdf":
+		return "application/pdf"
+	case ".txt":
+		return "text/plain; charset=utf-8"
+	case ".csv":
+		return "text/csv; charset=utf-8"
+	case ".png":
+		return "image/png"
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".docx":
+		return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+	case ".xlsx":
+		return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+	case ".zip":
+		return "application/zip"
+	default:
+		return "application/octet-stream"
+	}
+}
+
+func (h *DocumentHandler) serveFile(w http.ResponseWriter, r *http.Request, isAttachment bool) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "ID tidak valid")
@@ -398,7 +429,7 @@ func (h *DocumentHandler) download(w http.ResponseWriter, r *http.Request) {
 
 	var filePath, fileName, mimeType string
 	err = h.connection.QueryRow(r.Context(),
-		"SELECT file_path, file_name, COALESCE(mime_type, 'application/octet-stream') FROM documents WHERE id = $1", id).
+		"SELECT file_path, file_name, COALESCE(mime_type, '') FROM documents WHERE id = $1", id).
 		Scan(&filePath, &fileName, &mimeType)
 	if err == pgx.ErrNoRows {
 		writeError(w, http.StatusNotFound, "Dokumen tidak ditemukan")
@@ -409,12 +440,55 @@ func (h *DocumentHandler) download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, fileName))
-	w.Header().Set("Content-Type", mimeType)
-	http.ServeFile(w, r, filePath)
+	// Normalisasi path relatif vs absolut
+	actualPath := filePath
+	if strings.HasPrefix(actualPath, "/uploads/") {
+		actualPath = strings.TrimPrefix(actualPath, "/")
+	}
+	if !filepath.IsAbs(actualPath) {
+		if _, err := os.Stat(actualPath); os.IsNotExist(err) {
+			// Coba di direktori uploads
+			altPath := filepath.Join("uploads", filepath.Base(actualPath))
+			if _, err := os.Stat(altPath); err == nil {
+				actualPath = altPath
+			}
+		}
+	}
 
-	writeAuditLog(r.Context(), h.connection, "DOWNLOAD", "document", &id,
-		fmt.Sprintf("Dokumen '%s' diunduh", fileName), "", r.RemoteAddr)
+	// Pastikan file fisik ada di disk
+	if _, err := os.Stat(actualPath); os.IsNotExist(err) {
+		writeError(w, http.StatusNotFound, "Berkas fisik dokumen belum tersedia di server penyimpanan")
+		return
+	}
+
+	detectedMime := getMimeType(fileName, mimeType)
+
+	dispositionType := "inline"
+	if isAttachment {
+		dispositionType = "attachment"
+	}
+
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`%s; filename="%s"`, dispositionType, fileName))
+	w.Header().Set("Content-Type", detectedMime)
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+
+	http.ServeFile(w, r, actualPath)
+
+	action := "DOWNLOAD"
+	detail := fmt.Sprintf("Dokumen '%s' diunduh", fileName)
+	if !isAttachment {
+		action = "VIEW"
+		detail = fmt.Sprintf("Dokumen '%s' dilihat (pratinjau)", fileName)
+	}
+	writeAuditLog(r.Context(), h.connection, action, "document", &id, detail, "", r.RemoteAddr)
+}
+
+func (h *DocumentHandler) download(w http.ResponseWriter, r *http.Request) {
+	h.serveFile(w, r, true)
+}
+
+func (h *DocumentHandler) view(w http.ResponseWriter, r *http.Request) {
+	h.serveFile(w, r, false)
 }
 
 // ─── PERMANENT DELETE ────────────────────────────────────────────────────────

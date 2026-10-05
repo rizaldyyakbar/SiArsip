@@ -21,9 +21,9 @@ export const ConflictModal: React.FC<ConflictModalProps> = ({
   if (!isOpen) return null;
 
   const shaHash =
-    conflictData?.sha256 || 'e8f2b79c31405a81e9f12d8a5431cd6e9021b34fae891b2c4e5f7a8b9c0d1e2f';
-  const newFilename = conflictData?.newFilename || 'TA_220401048_Aditya_REV2.pdf';
-  const existingFilename = conflictData?.existingFilename || 'TA_220401048_Final.pdf';
+    conflictData?.sha256 || 'Menunggu verifikasi signature...';
+  const newFilename = conflictData?.newFilename || 'Berkas Unggahan Baru';
+  const existingFilename = conflictData?.existingFilename || 'Berkas Eksisting di Repositori';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">

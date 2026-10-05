@@ -6,15 +6,15 @@ import (
 	"strings"
 
 	"github.com/arsip-prodi/siarsip/backend/models"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // AcademicYearHandler menangani master data tahun akademik.
 type AcademicYearHandler struct {
-	connection *pgx.Conn
+	connection *pgxpool.Pool
 }
 
-func NewAcademicYearHandler(conn *pgx.Conn) *AcademicYearHandler {
+func NewAcademicYearHandler(conn *pgxpool.Pool) *AcademicYearHandler {
 	return &AcademicYearHandler{connection: conn}
 }
 

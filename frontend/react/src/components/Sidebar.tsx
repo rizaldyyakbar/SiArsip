@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   X
 } from 'lucide-react';
+import type { DocumentItem } from '../types';
 
 interface SidebarProps {
   currentTab: string;
@@ -20,6 +21,7 @@ interface SidebarProps {
   isOpenMobile: boolean;
   onCloseMobile: () => void;
   onOpenUpload: () => void;
+  documents?: DocumentItem[];
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -27,7 +29,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onTabChange,
   isOpenMobile,
   onCloseMobile,
-  onOpenUpload
+  onOpenUpload,
+  documents = []
 }) => {
   const navMain = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -187,40 +190,59 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Capacity Cloud Card */}
-        <div className="p-4">
-          <div className="rounded-2xl bg-[#004a32] p-4 text-white shadow-lg border border-[#006040]">
-            <div className="flex items-center justify-between text-xs font-semibold text-[#dce1ff]">
-              <div className="flex items-center gap-1.5">
-                <HardDrive className="h-3.5 w-3.5 text-[#85f8c4]" />
-                <span>Kapasitas Cloud</span>
+        {(() => {
+          const totalMB = documents.reduce((acc, doc) => {
+            const raw = doc.fileSize || '';
+            const match = raw.match(/([\d.]+)\s*(MB|KB|GB|B)/i);
+            if (!match) return acc;
+            const num = parseFloat(match[1]);
+            const unit = match[2].toUpperCase();
+            if (unit === 'GB') return acc + num * 1024;
+            if (unit === 'MB') return acc + num;
+            if (unit === 'KB') return acc + num / 1024;
+            return acc;
+          }, 0);
+
+          const usedDisplay = totalMB >= 1024 ? `${(totalMB / 1024).toFixed(2)} GB` : `${totalMB.toFixed(1)} MB`;
+          const pct = Math.min(100, Math.max(0.1, (totalMB / (100 * 1024)) * 100)).toFixed(1);
+
+          return (
+            <div className="p-4">
+              <div className="rounded-2xl bg-[#004a32] p-4 text-white shadow-lg border border-[#006040]">
+                <div className="flex items-center justify-between text-xs font-semibold text-[#dce1ff]">
+                  <div className="flex items-center gap-1.5">
+                    <HardDrive className="h-3.5 w-3.5 text-[#85f8c4]" />
+                    <span>Kapasitas Cloud</span>
+                  </div>
+                  <span className="font-mono text-[#cce5ff] font-bold">{pct}%</span>
+                </div>
+
+                {/* Progress bar */}
+                <div className="mt-2.5 h-2 w-full rounded-full bg-white/15 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#93ccff] to-[#85f8c4] transition-all duration-500"
+                    style={{ width: `${Math.max(2, parseFloat(pct))}%` }}
+                  />
+                </div>
+
+                <div className="mt-3 flex items-center justify-between text-xs">
+                  <span className="text-[11px] font-mono text-[#b6c4ff]">{usedDisplay} / 100 GB</span>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#85f8c4]">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Sehat
+                  </span>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-2.5 text-[10px] text-[#b6c4ff]">
+                  <span>v1.0 Internal RPL</span>
+                  <span className="rounded bg-white/15 px-1.5 py-0.5 font-mono text-[9px] font-bold text-white">
+                    STABLE
+                  </span>
+                </div>
               </div>
-              <span className="font-mono text-[#cce5ff] font-bold">42%</span>
             </div>
-
-            {/* Progress bar */}
-            <div className="mt-2.5 h-2 w-full rounded-full bg-white/15 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[#93ccff] to-[#85f8c4] transition-all duration-500"
-                style={{ width: '42.8%' }}
-              />
-            </div>
-
-            <div className="mt-3 flex items-center justify-between text-xs">
-              <span className="text-[11px] font-mono text-[#b6c4ff]">42.8 GB / 100 GB</span>
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#85f8c4]">
-                <CheckCircle2 className="h-3 w-3" />
-                Sehat
-              </span>
-            </div>
-
-            <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-2.5 text-[10px] text-[#b6c4ff]">
-              <span>v1.0 Internal RPL</span>
-              <span className="rounded bg-white/15 px-1.5 py-0.5 font-mono text-[9px] font-bold text-white">
-                STABLE
-              </span>
-            </div>
-          </div>
-        </div>
+          );
+        })()}
       </aside>
     </>
   );

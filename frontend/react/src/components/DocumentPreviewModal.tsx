@@ -62,7 +62,7 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
                 </p>
                 {document.previewUrl && (
                   <a
-                    href={document.previewUrl}
+                    href={document.downloadUrl || document.previewUrl}
                     download={document.filename}
                     className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#c8102e] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#9e1025]"
                   >
@@ -80,7 +80,7 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
           <div className="flex items-center gap-2">
             {document.previewUrl && canEmbed && (
               <a
-                href={document.previewUrl}
+                href={document.downloadUrl || document.previewUrl}
                 download={document.filename}
                 className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
               >

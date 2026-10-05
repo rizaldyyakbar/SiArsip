@@ -16,11 +16,15 @@ func main() {
 	ctx := context.Background()
 
 	// ── Koneksi ke PostgreSQL ──────────────────────────────────────────────
-	connection, err := db.Connect(ctx, os.Getenv("DATABASE_URL"))
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		databaseURL = "postgres://localhost:5432/siarsip?sslmode=disable"
+	}
+	connection, err := db.Connect(ctx, databaseURL)
 	if err != nil {
 		log.Fatal("Gagal koneksi ke database:", err)
 	}
-	defer connection.Close(ctx)
+	defer connection.Close()
 	log.Println("Berhasil terhubung ke PostgreSQL")
 
 	// ── Jalankan migrasi DDL ───────────────────────────────────────────────
