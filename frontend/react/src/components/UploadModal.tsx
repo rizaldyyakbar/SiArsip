@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UploadCloud, X, Hash, AlertCircle, Loader2 } from 'lucide-react';
-import type { DocumentItem, AcademicYearMaster, LamInfokomCriterion, CategoryItem, Lecturer } from '../types';
+import type { DocumentItem, AcademicYearMaster, LamInfokomCriterion, CategoryItem, Lecturer, UserAccount } from '../types';
 import { mockAcademicYears, mockLamInfokomCriteria } from '../mockData';
 import { getCategoryTheme } from '../api';
 
@@ -16,6 +16,7 @@ interface UploadModalProps {
   criteria?: LamInfokomCriterion[];
   categories?: CategoryItem[];
   lecturers?: Lecturer[];
+  currentUser?: UserAccount | null;
 }
 
 export const UploadModal: React.FC<UploadModalProps> = ({
@@ -26,12 +27,19 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   academicYears = mockAcademicYears,
   criteria = mockLamInfokomCriteria,
   categories = [],
-  lecturers = []
+  lecturers = [],
+  currentUser
 }) => {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Tugas Akhir');
   const [documentNumber, setDocumentNumber] = useState('');
-  const [nip, setNip] = useState('');
+  const [nip, setNip] = useState(currentUser?.nip || '');
+
+  useEffect(() => {
+    if (isOpen && currentUser?.nip) {
+      setNip(currentUser.nip);
+    }
+  }, [isOpen, currentUser]);
   const [documentDate, setDocumentDate] = useState('');
   const [academicYear, setAcademicYear] = useState(
     academicYears.find((ay) => ay.isActive)?.label || academicYears[0]?.label || '2026/2027 Ganjil'
@@ -219,9 +227,20 @@ export const UploadModal: React.FC<UploadModalProps> = ({
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                Dosen Penanggung Jawab
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="font-semibold text-slate-700">
+                  Dosen Penanggung Jawab
+                </label>
+                {currentUser?.nip && nip !== currentUser.nip && (
+                  <button
+                    type="button"
+                    onClick={() => setNip(currentUser.nip || '')}
+                    className="text-[10px] font-bold text-[#c8102e] hover:underline cursor-pointer"
+                  >
+                    Gunakan NIP Saya ({currentUser.nip})
+                  </button>
+                )}
+              </div>
               {lecturers.length > 0 ? (
                 <div className="space-y-1">
                   <select

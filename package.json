@@ -1,7 +1,9 @@
 {
   "name": "siarsip",
   "private": true,
-  "workspaces": ["frontend/react"],
+  "workspaces": [
+    "frontend/react"
+  ],
   "scripts": {
     "dev": "npm run dev:react",
     "dev:react": "npm --workspace frontend/react run dev",

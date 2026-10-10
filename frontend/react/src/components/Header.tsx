@@ -8,7 +8,6 @@ import {
   Command,
   User,
   LogOut,
-  Settings,
   X,
   Eye,
   FileText,
@@ -17,7 +16,7 @@ import {
   ExternalLink,
   SearchX
 } from 'lucide-react';
-import type { AuditLogItem, DocumentItem } from '../types';
+import type { AuditLogItem, DocumentItem, UserAccount } from '../types';
 
 interface HeaderProps {
   onToggleMobileMenu: () => void;
@@ -33,6 +32,8 @@ interface HeaderProps {
   onPreviewDocument?: (doc: DocumentItem) => void;
   onViewAllResults?: () => void;
   disableSearchPopup?: boolean;
+  currentUser?: UserAccount | null;
+  onLogout?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -48,7 +49,9 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectDocument,
   onPreviewDocument,
   onViewAllResults,
-  disableSearchPopup = false
+  disableSearchPopup = false,
+  currentUser,
+  onLogout
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -498,14 +501,26 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-3 rounded-xl p-1.5 transition-colors hover:bg-slate-100 sm:px-2.5"
           >
             <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#c8102e] to-[#ff7186] text-xs font-bold text-white shadow-xs ring-2 ring-white">
-              RI
+              {currentUser?.name
+                ? currentUser.name
+                    .split(' ')
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((w) => w[0])
+                    .join('')
+                    .toUpperCase()
+                : 'RI'}
             </div>
             <div className="hidden text-left sm:block">
               <p className="text-xs font-bold text-[#111c2d] leading-none">
-                Ratna Indah, S.Kom.
+                {currentUser?.name || 'Dr. Eng. Ratna Indah'}
               </p>
               <p className="mt-1 text-[11px] font-medium text-slate-500 leading-none">
-                Staf Administrasi & Akademik
+                {currentUser?.role === 'kaprodi'
+                  ? 'Ketua Program Studi RPL'
+                  : currentUser?.role === 'dosen'
+                  ? 'Dosen Tetap RPL'
+                  : 'Staf Administrasi & Akademik'}
               </p>
             </div>
             <ChevronDown className="hidden h-4 w-4 text-slate-400 sm:block" />
@@ -515,21 +530,31 @@ export const Header: React.FC<HeaderProps> = ({
           {showProfileMenu && (
             <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl z-50">
               <div className="border-b border-slate-100 px-3 py-2 text-xs">
-                <p className="font-bold text-slate-900">Ratna Indah, S.Kom.</p>
-                <p className="text-[11px] text-slate-500 font-mono">admin.rpl@kampus.ac.id</p>
+                <p className="font-bold text-slate-900">{currentUser?.name || 'Ratna Indah'}</p>
+                <p className="text-[11px] text-slate-500 font-mono">
+                  {currentUser?.email || (currentUser?.username ? `@${currentUser.username}` : 'admin.rpl@kampus.ac.id')}
+                </p>
+                {currentUser?.nip && (
+                  <p className="text-[10px] text-slate-400 font-mono mt-0.5">NIP: {currentUser.nip}</p>
+                )}
               </div>
               <div className="mt-1 space-y-0.5 text-xs font-medium text-slate-700">
-                <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 hover:bg-slate-100">
+                <button
+                  onClick={() => setShowProfileMenu(false)}
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 hover:bg-slate-100 cursor-pointer"
+                >
                   <User className="h-4 w-4 text-slate-400" />
                   Profil Pengguna
                 </button>
-                <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 hover:bg-slate-100">
-                  <Settings className="h-4 w-4 text-slate-400" />
-                  Pengaturan Sistem
-                </button>
-                <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-red-600 hover:bg-red-50">
+                <button
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    if (onLogout) onLogout();
+                  }}
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-red-600 hover:bg-red-50 cursor-pointer font-bold"
+                >
                   <LogOut className="h-4 w-4 text-red-500" />
-                  Keluar
+                  Keluar dari Sistem
                 </button>
               </div>
             </div>

@@ -92,3 +92,33 @@ export interface CategoryItem {
   updatedAt?: string;
 }
 
+export type UserRole = 'kaprodi' | 'dosen' | 'staf_prodi';
+
+export interface UserAccount {
+  id: number;
+  username: string;
+  name: string;
+  role: UserRole;
+  nip?: string;
+  email?: string;
+  phone?: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface DocumentVersion {
+  id: number;
+  documentId: number;
+  versionNo: number;
+  filePath: string;
+  fileName: string;
+  fileSizeBytes: number;
+  mimeType?: string;
+  sha256Hash: string;
+  note?: string;
+  uploadedBy?: string;
+  uploadedAt: string;
+}
+
+

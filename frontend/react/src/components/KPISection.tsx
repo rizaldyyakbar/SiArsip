@@ -71,7 +71,6 @@ export const KPISection: React.FC<KPISectionProps> = ({ documents = [] }) => {
           <span className="rounded-md bg-[#ffe5e8] px-2 py-0.5 text-[11px] font-semibold text-[#9e1025]">
             {activePct}% Terindeks Lengkap
           </span>
-          <span className="font-mono text-[11px] text-slate-400">PostgreSQL</span>
         </div>
       </div>
 

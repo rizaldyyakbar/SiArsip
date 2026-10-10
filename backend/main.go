@@ -43,6 +43,9 @@ func main() {
 	})
 
 	// Daftarkan semua handler
+	handlers.NewAuthHandler(connection).RegisterRoutes(mux)
+	handlers.NewUserHandler(connection).RegisterRoutes(mux)
+	handlers.NewStatsHandler(connection).RegisterRoutes(mux)
 	handlers.NewDocumentHandler(connection, storage.NewLocal("uploads")).RegisterRoutes(mux)
 	handlers.NewAcademicYearHandler(connection).RegisterRoutes(mux)
 	handlers.NewCriteriaHandler(connection).RegisterRoutes(mux)
@@ -53,7 +56,7 @@ func main() {
 	// ── CORS middleware (untuk dev frontend) ──────────────────────────────
 	withCORS := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)

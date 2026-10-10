@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"crypto/sha256"
+	"encoding/csv"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -33,10 +34,13 @@ func (h *DocumentHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /documents",                  h.list)
 	mux.HandleFunc("POST /documents/upload",           h.upload)
 	mux.HandleFunc("GET /documents/trash",             h.trash)
+	mux.HandleFunc("GET /documents/export",            h.exportCSV)
 	mux.HandleFunc("GET /documents/{id}",              h.detail)
 	mux.HandleFunc("GET /documents/{id}/download",     h.download)
 	mux.HandleFunc("GET /documents/{id}/view",         h.view)
 	mux.HandleFunc("GET /documents/{id}/preview",      h.view)
+	mux.HandleFunc("GET /documents/{id}/versions",     h.listVersions)
+	mux.HandleFunc("POST /documents/{id}/versions",    h.uploadVersion)
 	mux.HandleFunc("PATCH /documents/{id}",            h.update)
 	mux.HandleFunc("DELETE /documents/{id}",           h.softDelete)
 	mux.HandleFunc("DELETE /documents/{id}/permanent", h.permanentDelete)
@@ -262,6 +266,15 @@ func (h *DocumentHandler) upload(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "Gagal menyimpan metadata dokumen: "+err.Error())
 		return
 	}
+
+	// ── Simpan riwayat versi awal (Version 1) ────────────────────────────────
+	_, _ = h.connection.Exec(r.Context(), `
+		INSERT INTO document_versions (
+			document_id, version_no, file_path, file_name, file_size, mime_type, sha256_hash, note, uploaded_by
+		) VALUES ($1, 1, $2, $3, $4, $5, $6, 'Versi awal dokumen', NULLIF($7, ''))
+		ON CONFLICT (document_id, version_no) DO NOTHING`,
+		docID, storedPath, header.Filename, header.Size, header.Header.Get("Content-Type"), sha256Hash, nip,
+	)
 
 	// ── Audit log ───────────────────────────────────────────────────────────
 	writeAuditLog(r.Context(), h.connection, "UPLOAD", "document", &docID,
@@ -553,6 +566,267 @@ func (h *DocumentHandler) restore(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusOK, map[string]any{"message": "Dokumen berhasil dipulihkan", "id": id})
 }
+
+// ─── EKSPOR DATA ARSIP (CSV) ──────────────────────────────────────────────────
+
+func (h *DocumentHandler) exportCSV(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	conditions := []string{"deleted_at IS NULL"}
+	args := []any{}
+
+	if keyword := strings.TrimSpace(q.Get("query")); keyword != "" {
+		args = append(args, "%"+keyword+"%")
+		ph := fmt.Sprintf("$%d", len(args))
+		conditions = append(conditions,
+			fmt.Sprintf("(title ILIKE %s OR category ILIKE %s OR document_number ILIKE %s OR nip ILIKE %s)", ph, ph, ph, ph))
+	}
+	if cat := strings.TrimSpace(q.Get("category")); cat != "" && cat != "Semua" {
+		args = append(args, cat)
+		conditions = append(conditions, fmt.Sprintf("category ILIKE $%d", len(args)))
+	}
+	if ay := strings.TrimSpace(q.Get("academic_year")); ay != "" && ay != "Semua" {
+		args = append(args, ay)
+		conditions = append(conditions, fmt.Sprintf("academic_year = $%d", len(args)))
+	}
+	if nip := strings.TrimSpace(q.Get("nip")); nip != "" {
+		args = append(args, nip)
+		conditions = append(conditions, fmt.Sprintf("nip = $%d", len(args)))
+	}
+
+	queryStr := `
+		SELECT archive_number, document_number, document_date::TEXT, academic_year,
+		       title, category, COALESCE(nip, ''), status,
+		       COALESCE(accreditation_instrument, ''), COALESCE(accreditation_criterion, ''), COALESCE(evidence_type, ''),
+		       file_name, file_size, sha256_hash, created_at::TEXT
+		FROM documents
+		WHERE ` + strings.Join(conditions, " AND ") + `
+		ORDER BY id DESC`
+
+	rows, err := h.connection.Query(r.Context(), queryStr, args...)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Gagal mengambil data ekspor: "+err.Error())
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
+	w.Header().Set("Content-Disposition", `attachment; filename="arsip-prodi-rpl-export.csv"`)
+
+	// Tulis UTF-8 BOM agar Microsoft Excel langsung membaca karakter spesial dengan benar
+	_, _ = w.Write([]byte{0xEF, 0xBB, 0xBF})
+
+	writer := csv.NewWriter(w)
+	_ = writer.Write([]string{
+		"No. Arsip", "No. Dokumen/Surat", "Tanggal Dokumen", "Tahun Akademik",
+		"Judul Arsip", "Kategori", "NIP Dosen/PIC", "Status",
+		"Instrumen Akreditasi", "Kriteria LAM INFOKOM", "Jenis Bukti",
+		"Nama Berkas", "Ukuran Berkas (Bytes)", "SHA-256 Hash", "Waktu Unggah",
+	})
+
+	for rows.Next() {
+		var archNo, docNo, docDate, ay, title, cat, nip, status, instr, crit, evType, fName, sha, createdAt string
+		var fSize int64
+		if err := rows.Scan(
+			&archNo, &docNo, &docDate, &ay,
+			&title, &cat, &nip, &status,
+			&instr, &crit, &evType,
+			&fName, &fSize, &sha, &createdAt,
+		); err == nil {
+			_ = writer.Write([]string{
+				archNo, docNo, docDate, ay,
+				title, cat, nip, status,
+				instr, crit, evType,
+				fName, strconv.FormatInt(fSize, 10), sha, createdAt,
+			})
+		}
+	}
+	writer.Flush()
+}
+
+// ─── VERSIONING: RIWAYAT VERSI BERKAS ────────────────────────────────────────
+
+func (h *DocumentHandler) listVersions(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "ID tidak valid")
+		return
+	}
+
+	rows, err := h.connection.Query(r.Context(), `
+		SELECT id, document_id, version_no, file_path, COALESCE(file_name, ''),
+		       COALESCE(file_size, 0), COALESCE(mime_type, ''), sha256_hash,
+		       COALESCE(note, ''), COALESCE(uploaded_by, ''), uploaded_at
+		FROM document_versions
+		WHERE document_id = $1
+		ORDER BY version_no DESC`, id)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Gagal mengambil versi dokumen: "+err.Error())
+		return
+	}
+	defer rows.Close()
+
+	versions := []models.DocumentVersion{}
+	for rows.Next() {
+		var v models.DocumentVersion
+		if err := rows.Scan(
+			&v.ID, &v.DocumentID, &v.VersionNo, &v.FilePath, &v.FileName,
+			&v.FileSizeB, &v.MimeType, &v.SHA256Hash,
+			&v.Note, &v.UploadedBy, &v.UploadedAt,
+		); err == nil {
+			versions = append(versions, v)
+		}
+	}
+
+	// Jika belum ada row di document_versions, jadikan file saat ini sebagai versi 1
+	if len(versions) == 0 {
+		var doc models.Document
+		err := h.connection.QueryRow(r.Context(), `
+			SELECT file_path, file_name, file_size, COALESCE(mime_type, ''), sha256_hash, COALESCE(nip, ''), created_at
+			FROM documents WHERE id = $1`, id).Scan(
+			&doc.FilePath, &doc.FileName, &doc.FileSizeB, &doc.MimeType, &doc.SHA256Hash, &doc.NIP, &doc.CreatedAt,
+		)
+		if err == nil && doc.FilePath != "" {
+			versions = append(versions, models.DocumentVersion{
+				ID:         0,
+				DocumentID: id,
+				VersionNo:  1,
+				FilePath:   doc.FilePath,
+				FileName:   doc.FileName,
+				FileSizeB:  doc.FileSizeB,
+				MimeType:   doc.MimeType,
+				SHA256Hash: doc.SHA256Hash,
+				Note:       "Versi awal dokumen",
+				UploadedBy: doc.NIP,
+				UploadedAt: doc.CreatedAt,
+			})
+		}
+	}
+
+	writeJSON(w, http.StatusOK, versions)
+}
+
+func (h *DocumentHandler) uploadVersion(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "ID tidak valid")
+		return
+	}
+
+	var currentTitle, currentNip, currentFilePath string
+	err = h.connection.QueryRow(r.Context(),
+		"SELECT title, COALESCE(nip, ''), file_path FROM documents WHERE id = $1 AND deleted_at IS NULL", id).Scan(&currentTitle, &currentNip, &currentFilePath)
+	if err == pgx.ErrNoRows {
+		writeError(w, http.StatusNotFound, "Dokumen tidak ditemukan")
+		return
+	}
+
+	const maxSize = 25 * 1024 * 1024 // 25 MB
+	r.Body = http.MaxBytesReader(w, r.Body, maxSize)
+	if err := r.ParseMultipartForm(maxSize); err != nil {
+		writeError(w, http.StatusRequestEntityTooLarge, "Ukuran upload revisi maksimal 25 MB")
+		return
+	}
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "File revisi wajib diunggah dengan field 'file'")
+		return
+	}
+	defer file.Close()
+
+	note := strings.TrimSpace(r.FormValue("note"))
+	uploadedBy := strings.TrimSpace(r.FormValue("uploaded_by"))
+	if uploadedBy == "" {
+		uploadedBy = currentNip
+	}
+
+	ext := strings.ToLower(filepath.Ext(header.Filename))
+	allowed := map[string]bool{".pdf": true, ".docx": true, ".xlsx": true, ".zip": true, ".csv": true}
+	if !allowed[ext] {
+		writeError(w, http.StatusBadRequest, "Format file harus PDF, DOCX, XLSX, ZIP, atau CSV")
+		return
+	}
+
+	content, err := io.ReadAll(file)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Gagal membaca isi file")
+		return
+	}
+	hashBytes := sha256.Sum256(content)
+	sha256Hash := hex.EncodeToString(hashBytes[:])
+
+	storedPath, err := h.storage.SaveBytes(content, ext)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Gagal menyimpan berkas revisi ke storage")
+		return
+	}
+
+	// Tentukan nomor versi baru
+	var nextVersion int
+	_ = h.connection.QueryRow(r.Context(),
+		"SELECT COALESCE(MAX(version_no), 1) + 1 FROM document_versions WHERE document_id = $1", id).Scan(&nextVersion)
+
+	// Jika belum ada riwayat versi sebelumnya, simpan versi 1 dulu
+	var countExisting int
+	_ = h.connection.QueryRow(r.Context(), "SELECT COUNT(*) FROM document_versions WHERE document_id = $1", id).Scan(&countExisting)
+	if countExisting == 0 {
+		var oldName, oldSha string
+		var oldSize int64
+		_ = h.connection.QueryRow(r.Context(), "SELECT file_name, file_size, sha256_hash FROM documents WHERE id = $1", id).Scan(&oldName, &oldSize, &oldSha)
+		_, _ = h.connection.Exec(r.Context(), `
+			INSERT INTO document_versions (document_id, version_no, file_path, file_name, file_size, sha256_hash, note, uploaded_by)
+			VALUES ($1, 1, $2, $3, $4, $5, 'Versi awal dokumen', $6)
+			ON CONFLICT (document_id, version_no) DO NOTHING`,
+			id, currentFilePath, oldName, oldSize, oldSha, currentNip,
+		)
+	}
+
+	// Simpan versi baru
+	var versionID int64
+	err = h.connection.QueryRow(r.Context(), `
+		INSERT INTO document_versions (
+			document_id, version_no, file_path, file_name, file_size, mime_type, sha256_hash, note, uploaded_by
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		RETURNING id`,
+		id, nextVersion, storedPath, header.Filename, header.Size, header.Header.Get("Content-Type"), sha256Hash, note, uploadedBy,
+	).Scan(&versionID)
+	if err != nil {
+		_ = h.storage.Remove(storedPath)
+		writeError(w, http.StatusInternalServerError, "Gagal mencatat versi revisi: "+err.Error())
+		return
+	}
+
+	// Perbarui berkas aktif pada tabel documents
+	_, _ = h.connection.Exec(r.Context(), `
+		UPDATE documents SET
+			file_path = $2,
+			file_name = $3,
+			file_size = $4,
+			mime_type = $5,
+			sha256_hash = $6,
+			updated_at = NOW()
+		WHERE id = $1`,
+		id, storedPath, header.Filename, header.Size, header.Header.Get("Content-Type"), sha256Hash,
+	)
+
+	writeAuditLog(r.Context(), h.connection, "UPLOAD_VERSION", "document", &id,
+		fmt.Sprintf("Revisi berkas versi %d untuk '%s' diunggah (%s)", nextVersion, currentTitle, header.Filename), uploadedBy, r.RemoteAddr)
+
+	writeJSON(w, http.StatusCreated, models.DocumentVersion{
+		ID:         versionID,
+		DocumentID: id,
+		VersionNo:  nextVersion,
+		FilePath:   storedPath,
+		FileName:   header.Filename,
+		FileSizeB:  header.Size,
+		MimeType:   header.Header.Get("Content-Type"),
+		SHA256Hash: sha256Hash,
+		Note:       note,
+		UploadedBy: uploadedBy,
+		UploadedAt: time.Now(),
+	})
+}
+
 
 // ─── Helper ──────────────────────────────────────────────────────────────────
 

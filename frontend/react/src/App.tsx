@@ -23,8 +23,12 @@ import { DocumentPreviewModal } from './components/DocumentPreviewModal';
 import { AddAcademicYearModal } from './components/AddAcademicYearModal';
 import { LecturersManagement } from './components/LecturersManagement';
 import { CategoriesManagement } from './components/CategoriesManagement';
+import { UserManagement } from './components/UserManagement';
+import { LoginPage } from './components/LoginPage';
 import { useSiArsipData } from './hooks/useSiArsipData';
-import type { DocumentItem } from './types';
+import { getStoredUser, logout } from './api/auth';
+import { getExportDocumentsUrl } from './api/documents';
+import type { DocumentItem, UserAccount } from './types';
 
 function App() {
   const [currentTab, setCurrentTab] = useState('dashboard');
@@ -74,9 +78,17 @@ function App() {
     handleDeleteCategory
   } = useSiArsipData();
 
+  const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => getStoredUser());
+
   const showToast = (msg: string) => {
     setNotificationToast(msg);
     setTimeout(() => setNotificationToast(null), 3500);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setCurrentUser(null);
+    showToast('Anda telah keluar dari sistem.');
   };
 
   // Filter documents by search, category, and academic year
@@ -223,6 +235,17 @@ function App() {
     showToast('Kategori berhasil dihapus.');
   };
 
+  if (!currentUser) {
+    return (
+      <LoginPage
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+          showToast(`Selamat datang, ${user.name}`);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#fff8f8] text-[#111c2d] flex flex-col font-sans">
       {/* Toast Notification */}
@@ -260,6 +283,8 @@ function App() {
           onPreviewDocument={(doc) => setPreviewDocument(doc)}
           onViewAllResults={() => setCurrentTab('daftar-arsip')}
           disableSearchPopup={currentTab === 'daftar-arsip'}
+          currentUser={currentUser}
+          onLogout={handleLogout}
         />
 
         {/* Main Content Body */}
@@ -286,25 +311,6 @@ function App() {
                   <p className="mt-1 text-xs text-slate-500 sm:text-sm">
                     Pantauan metrik arsip, kuota penyimpanan, dan aktivitas dokumen
                   </p>
-                </div>
-
-                {/* Top Actions */}
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <button
-                    onClick={() => showToast('Mengekspor laporan akreditasi format XLSX...')}
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#f0f3ff] px-4 py-2.5 text-xs font-semibold text-[#111c2d] hover:bg-[#dee8ff] transition-all"
-                  >
-                    <FileSpreadsheet className="h-4 w-4 text-[#006398]" />
-                    <span>Ekspor Laporan Akreditasi</span>
-                  </button>
-
-                  <button
-                    onClick={() => setIsUploadModalOpen(true)}
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#c8102e] px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#9e1025] transition-all active:scale-95"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Unggah Dokumen Baru</span>
-                  </button>
                 </div>
               </div>
 
@@ -426,20 +432,36 @@ function App() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="font-semibold text-slate-600">Tahun:</span>
-                      <select
-                        value={academicYearFilter}
-                        onChange={(e) => setAcademicYearFilter(e.target.value)}
-                        className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 outline-hidden font-medium"
+                    <div className="flex items-center gap-2.5 text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold text-slate-600">Tahun:</span>
+                        <select
+                          value={academicYearFilter}
+                          onChange={(e) => setAcademicYearFilter(e.target.value)}
+                          className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 outline-hidden font-medium"
+                        >
+                          <option value="Semua">Semua Semester</option>
+                          {academicYears.map((ay) => (
+                            <option key={ay.id} value={ay.label}>
+                              {ay.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <a
+                        href={getExportDocumentsUrl({
+                          category: categoryFilter,
+                          academic_year: academicYearFilter,
+                          query: searchQuery
+                        })}
+                        download="arsip-prodi-rpl-export.csv"
+                        className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition-colors shadow-2xs"
+                        title="Unduh rekap berkas dalam format CSV / Excel"
                       >
-                        <option value="Semua">Semua Semester</option>
-                        {academicYears.map((ay) => (
-                          <option key={ay.id} value={ay.label}>
-                            {ay.label}
-                          </option>
-                        ))}
-                      </select>
+                        <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
+                        <span>Ekspor CSV</span>
+                      </a>
                     </div>
                   </div>
 
@@ -691,8 +713,18 @@ function App() {
                 </div>
               )}
 
+              {/* TAB: KELOLA PENGGUNA */}
+              {currentTab === 'kelola-pengguna' && (
+                <div className="mt-6">
+                  <UserManagement
+                    currentUser={currentUser}
+                    onShowToast={showToast}
+                  />
+                </div>
+              )}
+
               {/* OTHER COMING SOON TABS */}
-              {!['daftar-arsip', 'audit-log', 'tahun-akademik', 'tempat-sampah', 'dosen', 'kategori-tag'].includes(currentTab) && (
+              {!['daftar-arsip', 'audit-log', 'tahun-akademik', 'tempat-sampah', 'dosen', 'kategori-tag', 'kelola-pengguna'].includes(currentTab) && (
                 <div className="py-16 text-center">
                   <FolderArchive className="mx-auto h-12 w-12 text-slate-300" />
                   <p className="mt-3 text-sm font-semibold text-slate-600 capitalize">
@@ -728,6 +760,7 @@ function App() {
         criteria={criteria}
         categories={categories}
         lecturers={lecturers}
+        currentUser={currentUser}
       />
 
       <DocumentDetailModal
@@ -735,6 +768,7 @@ function App() {
         onClose={() => setSelectedDocument(null)}
         onPreview={(document) => setPreviewDocument(document)}
         onDelete={handleSoftDelete}
+        onVersionUploaded={loadData}
       />
 
       <DocumentPreviewModal

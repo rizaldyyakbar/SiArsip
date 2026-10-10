@@ -57,11 +57,15 @@ export async function apiClient<T>(
 
   const isFormData = customConfig.body instanceof FormData;
 
+  const token = localStorage.getItem('siarsip_token');
+  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
   const defaultHeaders: HeadersInit = isFormData
-    ? {}
+    ? { ...authHeaders }
     : {
         'Content-Type': 'application/json',
-        Accept: 'application/json'
+        Accept: 'application/json',
+        ...authHeaders
       };
 
   const response = await fetch(url, {

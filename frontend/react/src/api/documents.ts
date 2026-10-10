@@ -1,5 +1,5 @@
 import { apiClient, API_BASE_URL } from './client';
-import type { DocumentItem } from '../types';
+import type { DocumentItem, DocumentVersion } from '../types';
 
 export interface BackendDocument {
   id: number;
@@ -168,3 +168,43 @@ export function getDocumentDownloadUrl(id: number | string): string {
 export function getDocumentPreviewUrl(id: number | string): string {
   return `${API_BASE_URL}/documents/${id}/view`;
 }
+
+export async function fetchDocumentVersions(id: number | string): Promise<DocumentVersion[]> {
+  return apiClient<DocumentVersion[]>(`/documents/${id}/versions`);
+}
+
+export async function uploadDocumentVersion(
+  id: number | string,
+  formData: FormData
+): Promise<DocumentVersion> {
+  return apiClient<DocumentVersion>(`/documents/${id}/versions`, {
+    method: 'POST',
+    body: formData
+  });
+}
+
+export function getExportDocumentsUrl(params?: {
+  category?: string;
+  academic_year?: string;
+  nip?: string;
+  query?: string;
+}): string {
+  const base = API_BASE_URL.startsWith('http')
+    ? API_BASE_URL
+    : `${window.location.origin}${API_BASE_URL.startsWith('/') ? '' : '/'}${API_BASE_URL}`;
+  const url = new URL(`${base}/documents/export`);
+  if (params?.category && params.category !== 'Semua') {
+    url.searchParams.set('category', params.category);
+  }
+  if (params?.academic_year && params.academic_year !== 'Semua') {
+    url.searchParams.set('academic_year', params.academic_year);
+  }
+  if (params?.nip) {
+    url.searchParams.set('nip', params.nip);
+  }
+  if (params?.query) {
+    url.searchParams.set('query', params.query);
+  }
+  return url.toString();
+}
+

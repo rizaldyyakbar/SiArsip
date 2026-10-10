@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Migrate menjalankan DDL untuk membuat seluruh tabel yang dibutuhkan
@@ -166,6 +167,34 @@ CREATE TABLE IF NOT EXISTS document_versions (
     UNIQUE (document_id, version_no)
 );
 
+ALTER TABLE document_versions
+    ADD COLUMN IF NOT EXISTS file_name   VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS file_size   BIGINT DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS mime_type   VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS note        TEXT,
+    ADD COLUMN IF NOT EXISTS uploaded_by VARCHAR(150);
+
+-- ─────────────────────────────────────────────
+-- USERS & AUTENTIKASI: Kaprodi, Dosen, Staf Prodi
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS users (
+    id            SERIAL PRIMARY KEY,
+    username      VARCHAR(50)  NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    name          VARCHAR(150) NOT NULL,
+    role          VARCHAR(30)  NOT NULL CHECK (role IN ('kaprodi', 'dosen', 'staf_prodi')),
+    nip           VARCHAR(30),
+    email         VARCHAR(100),
+    phone         VARCHAR(30),
+    is_active     BOOLEAN      NOT NULL DEFAULT TRUE,
+    created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
+CREATE INDEX IF NOT EXISTS idx_users_role     ON users (role);
+CREATE INDEX IF NOT EXISTS idx_users_nip      ON users (nip);
+
 -- ─────────────────────────────────────────────
 -- Audit Trail
 -- ─────────────────────────────────────────────
@@ -185,6 +214,78 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at  ON audit_logs (created_at 
 CREATE INDEX IF NOT EXISTS idx_audit_logs_action      ON audit_logs (action);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_entity_id   ON audit_logs (entity_id);
 `
-	_, err := conn.Exec(ctx, ddl)
-	return err
+	if _, err := conn.Exec(ctx, ddl); err != nil {
+		return err
+	}
+
+	return seedUsers(ctx, conn)
 }
+
+// seedUsers membuat user bawaan untuk 3 role (Kaprodi, Dosen, Staf Prodi) jika belum ada.
+func seedUsers(ctx context.Context, conn *pgxpool.Pool) error {
+	type userSeed struct {
+		username string
+		password string
+		name     string
+		role     string
+		nip      string
+		email    string
+		phone    string
+	}
+
+	seeds := []userSeed{
+		{
+			username: "kaprodi",
+			password: "kaprodi123",
+			name:     "Dr. Eng. Ratna Indah, S.Kom., M.T.",
+			role:     "kaprodi",
+			nip:      "198503152010121002",
+			email:    "ratna.indah@kampus.ac.id",
+			phone:    "081234567890",
+		},
+		{
+			username: "staf",
+			password: "staf123",
+			name:     "Staf Administrasi RPL",
+			role:     "staf_prodi",
+			nip:      "",
+			email:    "admin.rpl@kampus.ac.id",
+			phone:    "081234567800",
+		},
+		{
+			username: "dosen",
+			password: "dosen123",
+			name:     "Ahmad Fauzi, S.T., M.Kom.",
+			role:     "dosen",
+			nip:      "198207122008121001",
+			email:    "ahmad.fauzi@kampus.ac.id",
+			phone:    "081234567891",
+		},
+	}
+
+	for _, s := range seeds {
+		var exists bool
+		_ = conn.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)", s.username).Scan(&exists)
+		if exists {
+			continue
+		}
+
+		hash, err := bcrypt.GenerateFromPassword([]byte(s.password), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+
+		_, err = conn.Exec(ctx, `
+			INSERT INTO users (username, password_hash, name, role, nip, email, phone, is_active)
+			VALUES ($1, $2, $3, $4, NULLIF($5, ''), NULLIF($6, ''), NULLIF($7, ''), TRUE)
+			ON CONFLICT (username) DO NOTHING`,
+			s.username, string(hash), s.name, s.role, s.nip, s.email, s.phone,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+

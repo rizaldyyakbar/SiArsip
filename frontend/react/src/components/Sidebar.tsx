@@ -35,7 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navMain = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'daftar-arsip', label: 'Daftar Arsip', icon: FolderArchive },
-    { id: 'unggah-berkas', label: 'Unggah Berkas', icon: UploadCloud, badge: 'BARU', isAction: true },
+    { id: 'unggah-berkas', label: 'Unggah Berkas', icon: UploadCloud, isAction: true },
   ];
 
   const navManagement = [
@@ -122,12 +122,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <Icon className={`h-4.5 w-4.5 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-[#ffd6dc]'}`} />
                       <span>{item.label}</span>
                     </div>
-
-                    {item.badge && (
-                      <span className="rounded-md bg-white px-2 py-0.5 text-[10px] font-extrabold tracking-wider text-[#9e1025] uppercase shadow-xs">
-                        {item.badge}
-                      </span>
-                    )}
                   </button>
                 );
               })}
