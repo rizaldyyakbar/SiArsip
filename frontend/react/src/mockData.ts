@@ -1,9 +1,42 @@
-import type { DocumentItem, AuditLogItem, CategoryDistribution, MonthlyTrend } from './types';
+import type {
+  DocumentItem,
+  AuditLogItem,
+  CategoryDistribution,
+  MonthlyTrend,
+  AcademicYearMaster,
+  LamInfokomCriterion,
+  Lecturer,
+  CategoryItem
+} from './types';
+
+export const mockAcademicYears: AcademicYearMaster[] = [
+  { id: 'ay-1', year: '2026/2027', semester: 'Ganjil', label: '2026/2027 Ganjil', isActive: true },
+  { id: 'ay-2', year: '2025/2026', semester: 'Genap', label: '2025/2026 Genap', isActive: false },
+  { id: 'ay-3', year: '2025/2026', semester: 'Ganjil', label: '2025/2026 Ganjil', isActive: false },
+  { id: 'ay-4', year: '2024/2025', semester: 'Genap', label: '2024/2025 Genap', isActive: false },
+  { id: 'ay-5', year: '2024/2025', semester: 'Ganjil', label: '2024/2025 Ganjil', isActive: false }
+];
+
+export const mockLamInfokomCriteria: LamInfokomCriterion[] = [
+  { code: 'C.1', title: 'C.1 - Visi, Misi, Tujuan, dan Strategi (VMTS)' },
+  { code: 'C.2', title: 'C.2 - Tata Pamong, Tata Kelola, dan Kerjasama' },
+  { code: 'C.3', title: 'C.3 - Mahasiswa' },
+  { code: 'C.4', title: 'C.4 - Sumber Daya Manusia (SDM)' },
+  { code: 'C.5', title: 'C.5 - Keuangan, Sarana, dan Prasarana' },
+  { code: 'C.6', title: 'C.6 - Pendidikan (Kurikulum & Pembelajaran)' },
+  { code: 'C.7', title: 'C.7 - Penelitian' },
+  { code: 'C.8', title: 'C.8 - Pengabdian kepada Masyarakat (PkM)' },
+  { code: 'C.9', title: 'C.9 - Luaran dan Capaian Tridharma' }
+];
 
 export const mockDocuments: DocumentItem[] = [
   {
     id: 'doc-1',
-    filename: '[TA]_220401048_Aditya_Pratama_2026.pdf',
+    archiveNumber: 'ARS-2026-000001',
+    documentNumber: '004/TA/RPL/IX/2026',
+    documentDate: '2026-09-28',
+    academicYear: '2026/2027 Ganjil',
+    filename: '[TA]_RPL_Implementasi_Sistem_Arsip_2026.pdf',
     fileSize: '4.2 MB',
     shaHash: 'e8f2...9a1b',
     category: 'Tugas Akhir',
@@ -12,14 +45,17 @@ export const mockDocuments: DocumentItem[] = [
       text: '#00236f',
       border: '#cce5ff'
     },
-    relatedName: 'Aditya Pratama',
-    relatedRoleOrNim: 'NIM: 220401048',
+    responsibleIdentifier: 'NIP: 198501012010121001',
     uploadDate: '28 Sep 2026, 14:10',
     status: 'Aktif'
   },
   {
     id: 'doc-2',
-    filename: '[PKL]_220401012_Nadia_Salma_2026.pdf',
+    archiveNumber: 'ARS-2026-000002',
+    documentNumber: '017/PKL/RPL/IX/2026',
+    documentDate: '2026-09-28',
+    academicYear: '2026/2027 Ganjil',
+    filename: '[PKL]_Pedoman_Magang_RPL_2026.pdf',
     fileSize: '2.8 MB',
     shaHash: 'c4d1...33fe',
     category: 'Laporan PKL',
@@ -28,13 +64,16 @@ export const mockDocuments: DocumentItem[] = [
       text: '#006398',
       border: '#b3e5fc'
     },
-    relatedName: 'Nadia Salma',
-    relatedRoleOrNim: 'NIM: 220401012',
+    responsibleIdentifier: 'NIP: 198703152012122002',
     uploadDate: '28 Sep 2026, 11:24',
     status: 'Aktif'
   },
   {
     id: 'doc-3',
+    archiveNumber: 'ARS-2026-000003',
+    documentNumber: 'RPS-RPL402-2026',
+    documentDate: '2026-09-27',
+    academicYear: '2026/2027 Ganjil',
     filename: '[RPS]_RPL402_Rekayasa_Web_2026.pdf',
     fileSize: '1.1 MB',
     shaHash: 'bb09...81ca',
@@ -44,13 +83,19 @@ export const mockDocuments: DocumentItem[] = [
       text: '#00476e',
       border: '#b2ebf2'
     },
-    relatedName: 'Dr. Aris Munandar',
-    relatedRoleOrNim: 'Dosen Pengampu',
+    accreditationInstrument: 'LAM INFOKOM 2.1',
+    accreditationCriterion: 'C.6 - Pendidikan (Kurikulum & Pembelajaran)',
+    evidenceType: 'Dokumen Kebijakan & Rencana Pembelajaran Semester',
+    responsibleIdentifier: 'NIP: 198501012010121001',
     uploadDate: '27 Sep 2026, 16:45',
     status: 'Aktif'
   },
   {
     id: 'doc-4',
+    archiveNumber: 'ARS-2026-000004',
+    documentNumber: '084/SK-FT/IX/2026',
+    documentDate: '2026-09-26',
+    academicYear: '2026/2027 Ganjil',
     filename: '[SK]_SK-Dekan-084-Pembimbing-TA-2026.pdf',
     fileSize: '820 KB',
     shaHash: '77a0...55da',
@@ -60,14 +105,20 @@ export const mockDocuments: DocumentItem[] = [
       text: '#004a32',
       border: '#c8e6c9'
     },
-    relatedName: 'Umum Prodi RPL',
-    relatedRoleOrNim: 'Fakultas Teknik',
+    accreditationInstrument: 'LAM INFOKOM 2.1',
+    accreditationCriterion: 'C.4 - Sumber Daya Manusia (SDM)',
+    evidenceType: 'SK Penetapan Pembimbing Tugas Akhir',
+    responsibleIdentifier: 'NIP: 197805122005011003',
     uploadDate: '26 Sep 2026, 09:12',
     status: 'Aktif'
   },
   {
     id: 'doc-5',
-    filename: '[DRAFT]_Laporan_Magang_Ilham_Kurnia.docx',
+    archiveNumber: 'ARS-2026-000005',
+    documentNumber: '021/PKL/RPL/IX/2026',
+    documentDate: '2026-09-25',
+    academicYear: '2026/2027 Ganjil',
+    filename: '[DRAFT]_Laporan_Evaluasi_Magang_RPL.docx',
     fileSize: '1.9 MB',
     shaHash: '3d91...77cb',
     category: 'Laporan PKL',
@@ -76,11 +127,32 @@ export const mockDocuments: DocumentItem[] = [
       text: '#006398',
       border: '#b3e5fc'
     },
-    relatedName: 'Ilham Kurnia',
-    relatedRoleOrNim: 'NIM: 220401099',
+    responsibleIdentifier: 'NIP: 199002022015032003',
     uploadDate: '25 Sep 2026, 18:30',
     status: 'Draft',
-    issues: 'Belum ada Abstrak & Dosen Pembimbing'
+    issues: 'Belum ada Abstrak & NIP Pembimbing'
+  },
+  {
+    id: 'doc-6',
+    archiveNumber: 'ARS-2026-000006',
+    documentNumber: '001/AKRED/LAM-INFOKOM/2026',
+    documentDate: '2026-09-24',
+    academicYear: '2026/2027 Ganjil',
+    filename: '[AKRED]_LED_Prodi_RPL_Instrumen_2.1.pdf',
+    fileSize: '6.4 MB',
+    shaHash: '4f8a...12ee',
+    category: 'Dokumen Akreditasi',
+    categoryTheme: {
+      bg: '#fdf2f8',
+      text: '#9d174d',
+      border: '#fbcfe8'
+    },
+    accreditationInstrument: 'LAM INFOKOM 2.1',
+    accreditationCriterion: 'C.1 - Visi, Misi, Tujuan, dan Strategi (VMTS)',
+    evidenceType: 'Laporan Evaluasi Diri (LED)',
+    responsibleIdentifier: 'NIP: 197508202000031001',
+    uploadDate: '24 Sep 2026, 10:15',
+    status: 'Aktif'
   }
 ];
 
@@ -144,3 +216,105 @@ export const mockAuditLogs: AuditLogItem[] = [
     accentColor: '#004a32'
   }
 ];
+
+export const mockLecturers: Lecturer[] = [
+  {
+    id: 1,
+    nip: '198503152010121002',
+    name: 'Dr. Eng. Ratna Indah, S.Kom., M.T.',
+    email: 'ratna.indah@kampus.ac.id',
+    phone: '081234567890',
+    position: 'Ketua Program Studi RPL',
+    isActive: true,
+    documentCount: 2
+  },
+  {
+    id: 2,
+    nip: '198207122008121001',
+    name: 'Ahmad Fauzi, S.T., M.Kom.',
+    email: 'ahmad.fauzi@kampus.ac.id',
+    phone: '081234567891',
+    position: 'Sekretaris Prodi & Dosen Tetap',
+    isActive: true,
+    documentCount: 0
+  },
+  {
+    id: 3,
+    nip: '199001082019032015',
+    name: 'Siti Aminah, M.Cs.',
+    email: 'siti.aminah@kampus.ac.id',
+    phone: '081234567892',
+    position: 'Koordinator Tugas Akhir',
+    isActive: true,
+    documentCount: 0
+  },
+  {
+    id: 4,
+    nip: '197904202005011003',
+    name: 'Budi Santoso, S.Kom., M.Kom.',
+    email: 'budi.santoso@kampus.ac.id',
+    phone: '081234567893',
+    position: 'Koordinator Kurikulum & Mutu',
+    isActive: true,
+    documentCount: 0
+  },
+  {
+    id: 5,
+    nip: '198811252015041002',
+    name: 'Hendra Wijaya, Ph.D.',
+    email: 'hendra.wijaya@kampus.ac.id',
+    phone: '081234567894',
+    position: 'Koordinator PKL & Kerjasama',
+    isActive: true,
+    documentCount: 0
+  }
+];
+
+export const mockCategoryItems: CategoryItem[] = [
+  {
+    id: 1,
+    name: 'Tugas Akhir',
+    code: 'TA',
+    description: 'Berkas skripsi, proposal, berita acara, dan pengujian mahasiswa',
+    colorBg: '#fff0f2',
+    colorText: '#ba1a1a',
+    documentCount: 1
+  },
+  {
+    id: 2,
+    name: 'Laporan PKL',
+    code: 'PKL',
+    description: 'Laporan praktik kerja lapangan dan magang industri mahasiswa',
+    colorBg: '#f0f3ff',
+    colorText: '#00236f',
+    documentCount: 0
+  },
+  {
+    id: 3,
+    name: 'Kurikulum & RPS',
+    code: 'RPS',
+    description: 'Rencana pembelajaran semester, silabus, dan matriks kurikulum OBE',
+    colorBg: '#e7f9ef',
+    colorText: '#056434',
+    documentCount: 2
+  },
+  {
+    id: 4,
+    name: 'Akreditasi',
+    code: 'AKR',
+    description: 'Borang akreditasi, instrumen evaluasi diri, dan bukti LAM INFOKOM',
+    colorBg: '#fff8e1',
+    colorText: '#b25e00',
+    documentCount: 0
+  },
+  {
+    id: 5,
+    name: 'SK & Surat',
+    code: 'SK',
+    description: 'Surat keputusan dekan/kaprodi, surat tugas dosen, dan persuratan resmi',
+    colorBg: '#f3e8ff',
+    colorText: '#6b21a8',
+    documentCount: 0
+  }
+];
+

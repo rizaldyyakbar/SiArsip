@@ -1,14 +1,19 @@
 import React from 'react';
 import { ExternalLink, ShieldCheck } from 'lucide-react';
-import { mockAuditLogs } from '../mockData';
+
+import type { AuditLogItem } from '../types';
 
 interface AuditActivityPanelProps {
   onOpenAuditTrail: () => void;
+  logs?: AuditLogItem[];
 }
 
 export const AuditActivityPanel: React.FC<AuditActivityPanelProps> = ({
-  onOpenAuditTrail
+  onOpenAuditTrail,
+  logs = []
 }) => {
+  const displayLogs = logs.slice(0, 5);
+
   return (
     <div className="flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs lg:col-span-4">
       <div>
@@ -32,8 +37,15 @@ export const AuditActivityPanel: React.FC<AuditActivityPanelProps> = ({
         </div>
 
         {/* Timeline List */}
-        <div className="relative mt-5 space-y-6 pl-6 before:absolute before:top-2 before:bottom-2 before:left-[11px] before:w-[2px] before:bg-[#dee8ff]">
-          {mockAuditLogs.map((log) => {
+        {displayLogs.length === 0 ? (
+          <div className="py-12 text-center text-slate-400">
+            <ShieldCheck className="mx-auto h-8 w-8 text-slate-300 mb-2" />
+            <p className="text-xs font-semibold text-slate-600">Belum ada riwayat audit</p>
+            <p className="text-[11px] text-slate-400 mt-1">Aktivitas unggah dan unduh berkas akan otomatis dicatat di sini.</p>
+          </div>
+        ) : (
+          <div className="relative mt-5 space-y-6 pl-6 before:absolute before:top-2 before:bottom-2 before:left-[11px] before:w-[2px] before:bg-[#dee8ff]">
+          {displayLogs.map((log) => {
             return (
               <div key={log.id} className="relative group">
                 {/* Timeline Dot */}
@@ -79,6 +91,7 @@ export const AuditActivityPanel: React.FC<AuditActivityPanelProps> = ({
             );
           })}
         </div>
+        )}
       </div>
 
       {/* Bottom Button */}

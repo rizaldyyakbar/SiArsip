@@ -5,14 +5,25 @@ interface ConflictModalProps {
   isOpen: boolean;
   onClose: () => void;
   onResolve: (action: string) => void;
+  conflictData?: {
+    sha256: string;
+    newFilename: string;
+    existingFilename?: string;
+  } | null;
 }
 
 export const ConflictModal: React.FC<ConflictModalProps> = ({
   isOpen,
   onClose,
-  onResolve
+  onResolve,
+  conflictData
 }) => {
   if (!isOpen) return null;
+
+  const shaHash =
+    conflictData?.sha256 || 'Menunggu verifikasi signature...';
+  const newFilename = conflictData?.newFilename || 'Berkas Unggahan Baru';
+  const existingFilename = conflictData?.existingFilename || 'Berkas Eksisting di Repositori';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
@@ -51,8 +62,8 @@ export const ConflictModal: React.FC<ConflictModalProps> = ({
             <span className="font-semibold text-slate-700">Identical Cryptographic Signature</span>
             <span className="font-mono font-bold text-[#00236f]">SHA-256 Algorithm</span>
           </div>
-          <div className="mt-2 rounded-xl bg-white p-3 font-mono text-[11px] text-slate-800 break-all border border-slate-200">
-            e8f2b79c31405a81e9f12d8a5431cd6e9021b34fae891b2c4e5f7a8b9c0d1e2f
+          <div className="mt-2 rounded-xl bg-white p-3 font-mono text-[11px] text-slate-800 break-all border border-slate-200 select-all">
+            {shaHash}
           </div>
         </div>
 
@@ -67,13 +78,13 @@ export const ConflictModal: React.FC<ConflictModalProps> = ({
               <FileText className="h-5 w-5 text-[#ba1a1a] shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-bold text-slate-900 break-all">
-                  TA_220401048_Aditya_REV2.pdf
+                  {newFilename}
                 </p>
                 <p className="mt-1 text-[11px] text-slate-500">
-                  Ukuran: 4.2 MB • Diunggah: 28 Sep 2026, 14:10
+                  Status: Terdeteksi duplikat SHA-256
                 </p>
                 <p className="text-[11px] text-slate-500">
-                  Oleh: Aditya Pratama (Mahasiswa)
+                  Oleh: Sistem Arsip Prodi RPL
                 </p>
               </div>
             </div>
@@ -88,13 +99,13 @@ export const ConflictModal: React.FC<ConflictModalProps> = ({
               <FileText className="h-5 w-5 text-[#00236f] shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-bold text-slate-900 break-all">
-                  TA_220401048_Final.pdf
+                  {existingFilename}
                 </p>
                 <p className="mt-1 text-[11px] text-slate-500">
-                  Ukuran: 4.2 MB • Terindeks: 15 Agu 2026
+                  Status: Berkas Resmi Tersimpan
                 </p>
                 <p className="text-[11px] text-slate-500">
-                  Status: Berkas Resmi Tugas Akhir
+                  Tersimpan di repositori database
                 </p>
               </div>
             </div>

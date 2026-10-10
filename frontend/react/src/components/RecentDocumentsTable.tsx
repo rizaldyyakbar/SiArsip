@@ -8,19 +8,24 @@ import {
   ChevronLeft,
   ChevronRight,
   FileCode,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 import type { DocumentItem } from '../types';
 
 interface RecentDocumentsTableProps {
   documents: DocumentItem[];
   onViewDocument: (doc: DocumentItem) => void;
+  onPreviewDocument?: (doc: DocumentItem) => void;
+  onDeleteDocument?: (doc: DocumentItem) => void;
   onViewAll: () => void;
 }
 
 export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
   documents,
   onViewDocument,
+  onPreviewDocument,
+  onDeleteDocument,
   onViewAll
 }) => {
   return (
@@ -39,7 +44,7 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
 
           <button
             onClick={onViewAll}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#00236f] hover:text-[#1e3a8a] transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#c8102e] hover:text-[#9e1025] transition-colors"
           >
             <span>Lihat Semua Berkas</span>
             <ArrowRight className="h-4 w-4" />
@@ -51,24 +56,33 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-slate-100 bg-[#f0f3ff]/70 text-[11px] font-bold tracking-wider text-[#444651]">
-                <th className="py-3 pl-4 pr-3 rounded-l-xl">DOKUMEN / DISPLAY NAME</th>
-                <th className="px-3 py-3">KATEGORI</th>
-                <th className="px-3 py-3">TERKAIT</th>
-                <th className="px-3 py-3">TANGGAL</th>
+                <th className="py-3 pl-4 pr-3 rounded-l-xl">DOKUMEN & NO. RESMI</th>
+                <th className="px-3 py-3">KATEGORI & AKREDITASI</th>
+                <th className="px-3 py-3">NIP / PENANGGUNG JAWAB</th>
+                <th className="px-3 py-3">TGL DOKUMEN / AKADEMIK</th>
                 <th className="px-3 py-3">STATUS</th>
                 <th className="py-3 pr-4 pl-3 text-right rounded-r-xl">AKSI</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
-              {documents.map((doc) => {
-                const isDraft = doc.status === 'Draft';
-                return (
-                  <tr
-                    key={doc.id}
-                    className={`transition-colors ${
-                      isDraft ? 'bg-[#f0f3ff]/40 hover:bg-[#e7eeff]/60' : 'hover:bg-slate-50/80'
-                    }`}
-                  >
+              {documents.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    <FileText className="mx-auto h-8 w-8 text-slate-300 mb-2" />
+                    <p className="font-semibold text-slate-600">Tidak ada dokumen ditemukan</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Belum ada berkas tersimpan atau coba sesuaikan kata kunci pencarian.</p>
+                  </td>
+                </tr>
+              ) : (
+                documents.map((doc) => {
+                  const isDraft = doc.status === 'Draft';
+                  return (
+                    <tr
+                      key={doc.id}
+                      className={`transition-colors ${
+                        isDraft ? 'bg-[#f0f3ff]/40 hover:bg-[#e7eeff]/60' : 'hover:bg-slate-50/80'
+                      }`}
+                    >
                     {/* Filename & Hash */}
                     <td className="py-3.5 pl-4 pr-3">
                       <div className="flex items-start gap-3">
@@ -87,7 +101,7 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
                         </div>
 
                         <div className="min-w-0 max-w-[240px]">
-                          <p className="truncate font-semibold text-[#111c2d] hover:text-[#00236f] cursor-pointer" onClick={() => onViewDocument(doc)}>
+                          <p className="truncate font-semibold text-[#111c2d] hover:text-[#c8102e] cursor-pointer" onClick={() => onViewDocument(doc)}>
                             {doc.filename}
                           </p>
                           {doc.issues ? (
@@ -96,36 +110,48 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
                               <span className="truncate">{doc.issues}</span>
                             </div>
                           ) : (
-                            <p className="mt-0.5 font-mono text-[11px] text-slate-400">
-                              {doc.fileSize} • SHA: {doc.shaHash}
-                            </p>
+                            <>
+                              <p className="mt-0.5 font-mono text-[10px] text-[#9e1025] truncate">
+                                {doc.archiveNumber} • No. {doc.documentNumber}
+                              </p>
+                              <p className="font-mono text-[10px] text-slate-400">
+                                {doc.fileSize} • SHA: {doc.shaHash}
+                              </p>
+                            </>
                           )}
                         </div>
                       </div>
                     </td>
 
-                    {/* Kategori */}
+                    {/* Kategori & Akreditasi */}
                     <td className="px-3 py-3.5 whitespace-nowrap">
-                      <span
-                        className="inline-block rounded-md px-2.5 py-1 text-[11px] font-semibold"
-                        style={{
-                          backgroundColor: doc.categoryTheme.bg,
-                          color: doc.categoryTheme.text,
-                        }}
-                      >
-                        {doc.category}
-                      </span>
+                      <div>
+                        <span
+                          className="inline-block rounded-md px-2.5 py-1 text-[11px] font-semibold"
+                          style={{
+                            backgroundColor: doc.categoryTheme.bg,
+                            color: doc.categoryTheme.text,
+                          }}
+                        >
+                          {doc.category}
+                        </span>
+                        {doc.accreditationInstrument && (
+                          <p className="mt-1 text-[10px] font-semibold text-[#9e1025]">
+                            LAM INFOKOM 2.1
+                          </p>
+                        )}
+                      </div>
                     </td>
 
-                    {/* Terkait (Mahasiswa / Dosen) */}
+                    {/* Penanggung jawab dokumen (NIP) */}
                     <td className="px-3 py-3.5 whitespace-nowrap">
-                      <p className="font-semibold text-[#111c2d]">{doc.relatedName}</p>
-                      <p className="text-[11px] text-slate-500">{doc.relatedRoleOrNim}</p>
+                      <p className="font-mono font-semibold text-[#111c2d]">{doc.responsibleIdentifier}</p>
                     </td>
 
-                    {/* Tanggal */}
-                    <td className="px-3 py-3.5 whitespace-nowrap font-mono text-slate-600">
-                      {doc.uploadDate}
+                    {/* Tanggal Dokumen & Tahun Akademik */}
+                    <td className="px-3 py-3.5 whitespace-nowrap">
+                      <p className="font-medium text-[#111c2d]">{doc.documentDate}</p>
+                      <p className="font-mono text-[10px] text-slate-500">{doc.academicYear}</p>
                     </td>
 
                     {/* Status */}
@@ -148,7 +174,7 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
                       {isDraft ? (
                         <button
                           onClick={() => onViewDocument(doc)}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-[#1e3a8a] px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-[#00236f] transition-all"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-[#c8102e] px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-[#9e1025] transition-all"
                         >
                           <Edit3 className="h-3.5 w-3.5" />
                           <span>Edit</span>
@@ -156,24 +182,47 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
                       ) : (
                         <div className="flex items-center justify-end gap-1">
                           <button
-                            onClick={() => onViewDocument(doc)}
-                            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                            onClick={() => {
+                              if (onPreviewDocument) {
+                                onPreviewDocument(doc);
+                              } else {
+                                onViewDocument(doc);
+                              }
+                            }}
+                            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"
                             title="Pratinjau Dokumen"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
-                            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                            onClick={() => {
+                              const targetUrl = doc.downloadUrl || doc.previewUrl;
+                              if (targetUrl) {
+                                window.open(targetUrl, '_blank');
+                              } else {
+                                onViewDocument(doc);
+                              }
+                            }}
+                            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"
                             title="Unduh Berkas"
                           >
                             <Download className="h-4 w-4" />
                           </button>
+                          {onDeleteDocument && (
+                            <button
+                              onClick={() => onDeleteDocument(doc)}
+                              className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-[#ba1a1a] transition-colors"
+                              title="Pindahkan ke Tempat Sampah"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
                         </div>
                       )}
                     </td>
                   </tr>
                 );
-              })}
+              }))}
             </tbody>
           </table>
         </div>
@@ -182,7 +231,7 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
       {/* Pagination Footer Card */}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#f0f3ff] px-4 py-3 text-xs">
         <span className="text-slate-500">
-          Menampilkan <span className="font-semibold text-slate-800">5 berkas</span> dari <span className="font-semibold text-slate-800">3.482 entri</span> repositori
+          Menampilkan <span className="font-semibold text-slate-800">{documents.length} berkas</span> dari <span className="font-semibold text-slate-800">{documents.length} entri</span> repositori
         </span>
 
         <div className="flex items-center gap-2">
@@ -190,9 +239,9 @@ export const RecentDocumentsTable: React.FC<RecentDocumentsTableProps> = ({
             <ChevronLeft className="h-4 w-4" />
           </button>
           <span className="font-mono text-xs font-semibold text-[#111c2d]">
-            Hal 1 dari 697
+            Hal 1 dari 1
           </span>
-          <button className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">
+          <button className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 disabled:opacity-50" disabled>
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
